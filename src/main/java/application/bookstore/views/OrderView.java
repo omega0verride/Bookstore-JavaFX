@@ -13,6 +13,7 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.*;
+import javafx.stage.Stage;
 import javafx.util.converter.FloatStringConverter;
 import javafx.util.converter.IntegerStringConverter;
 
@@ -31,6 +32,7 @@ public class OrderView extends View {
     private final Order order;
     private final Tab tab;
     private final MainView mainView;
+    private final Stage mainStage;
 
     private final TableColumn<BookOrder, Integer> noCol = new TableColumn<>("Quantity");
     private final TableColumn<BookOrder, String> isbnCol = new TableColumn<>("ISBN");
@@ -46,13 +48,13 @@ public class OrderView extends View {
     private final Parent existingBooksViewView;
     private final boolean advanced;
 
-    public OrderView(MainView mainView, Tab tab) {
-        this(mainView, tab, false);
+    public OrderView(MainView mainView, Stage mainStage, Tab tab) {
+        this(mainView, mainStage, tab, false);
     }
 
-    public OrderView(MainView mainView, Tab tab, boolean advanced) {
-        // inject the controller
+    public OrderView(MainView mainView, Stage mainStage, Tab tab, boolean advanced) {
         this.mainView = mainView;
+        this.mainStage=mainStage;
         this.tab = tab;
         this.advanced = advanced;
         order = new Order();
@@ -63,7 +65,7 @@ public class OrderView extends View {
         setForm();
         setTableView();
 
-        new OrderController(this);
+        new OrderController(this, mainStage);
     }
 
     private void setForm() {

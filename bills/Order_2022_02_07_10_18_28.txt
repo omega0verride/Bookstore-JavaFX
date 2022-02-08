@@ -1,9 +1,0 @@
-Order: Order_2022_02_07_10_18_28
-Date: 2022/02/07 10:18:28
-Client: hjfjhkjgkj
-Books Ordered: 
-9pcs   1231                 Unit: 123.00 Total: 1107.00
-6pcs   test1                Unit: 90.00  Total: 540.00
-
------------
-Total: 1647.00

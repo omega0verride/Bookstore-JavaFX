@@ -23,7 +23,7 @@ public class ControllerCommon {
         scheduleLabelReset(l, 5000);
     }
 
-    static void showErrorMessage(Label l, String t) {
+    public static void showErrorMessage(Label l, String t) {
         l.setText(t);
         l.setTextFill(Color.RED);
         scheduleLabelReset(l, 5000);

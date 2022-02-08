@@ -1,8 +1,0 @@
-Order: Order_2022_02_07_00_47_49
-Date: 2022/02/07 00:47:49
-Client: test
-Books Ordered: 
-1pcs   1231                 Unit: 123.00 Total: 123.00
-
------------
-Total: 123.00

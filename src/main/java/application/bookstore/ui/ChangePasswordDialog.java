@@ -1,6 +1,8 @@
-package application.bookstore.views;
+package application.bookstore.ui;
 
+import application.bookstore.controllers.ControllerCommon;
 import application.bookstore.models.User;
+import application.bookstore.views.View;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -83,10 +85,8 @@ public class ChangePasswordDialog {
 
     private void addKeyBind() {
         v.setOnKeyPressed(e -> {
-            System.out.println("iyhkdsja");
             if (e.getCode().equals(KeyCode.ENTER)) {
                 changePassword();
-                System.out.println("asdad");
             }
         });
 
@@ -107,38 +107,14 @@ public class ChangePasswordDialog {
                     });
                     d.setOnCloseRequest(e -> newWindow.close());
                 } else {
-                    showErrorMessage(messageLabel, "New Password Invalid!");
+                    ControllerCommon.showErrorMessage(messageLabel, "New Password Invalid!");
                 }
             } else {
-                showErrorMessage(messageLabel, "New Passwords do not match!");
+                ControllerCommon.showErrorMessage(messageLabel, "New Passwords do not match!");
             }
         } else {
-            showErrorMessage(messageLabel, "Old Password Incorrect!");
+            ControllerCommon.showErrorMessage(messageLabel, "Old Password Incorrect!");
         }
-    }
-
-    private void showErrorMessage(Label l, String t) {
-        l.setText(t);
-        l.setTextFill(Color.DARKRED);
-        scheduleErrorReset(l, 5000);
-    }
-
-    private void showErrorMessage(Label l, String t, int time) {
-        l.setText(t);
-        l.setTextFill(Color.DARKRED);
-        scheduleErrorReset(l, time);
-    }
-
-    private void scheduleErrorReset(Label l, int time) {
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                Platform.runLater(() -> {
-                    l.setText("");
-                });
-            }
-        }, time);
     }
 
     class ConfirmationDialog extends Stage {

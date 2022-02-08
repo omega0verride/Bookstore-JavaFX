@@ -1,9 +1,0 @@
-Order: Order_2022_02_07_00_50_05
-Date: 2022/02/07 00:50:05
-Client: sada
-Books Ordered: 
-1pcs   test1                Unit: 90.00  Total: 90.00
-1pcs   1231                 Unit: 123.00 Total: 123.00
-
------------
-Total: 213.00

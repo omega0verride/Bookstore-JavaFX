@@ -1,15 +1,19 @@
 package application.bookstore.controllers;
 
 import application.bookstore.models.BookOrder;
+import application.bookstore.ui.PrintWindow;
 import application.bookstore.views.OrderView;
+import javafx.stage.Stage;
 
 import java.util.List;
 
 public class OrderController {
     private final OrderView orderView;
+    private final Stage mainStage;
 
-    public OrderController(OrderView bookView) {
-        this.orderView = bookView;
+    public OrderController(OrderView orderView, Stage mainStage) {
+        this.mainStage=mainStage;
+        this.orderView = orderView;
 //        Order.getOrders();// get data from file
         setEditListener();
         setChooseBookListener();
@@ -89,6 +93,7 @@ public class OrderController {
                 for (BookOrder b : orderView.getOrder().getBooksOrdered()) {
                     b.getBook().setQuantity(b.getBook().getQuantity() - b.getQuantity());
                 } // change stock quantity
+                new PrintWindow(mainStage, orderView, orderView.getOrder());
                 orderView.getOrder().print();
                 ControllerCommon.showSuccessMessage(orderView.getResultLabel(), "Order created successfully");
                 resetFields();

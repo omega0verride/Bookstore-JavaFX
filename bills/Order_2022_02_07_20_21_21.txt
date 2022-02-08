@@ -1,8 +1,0 @@
-Order: Order_2022_02_07_20_21_21
-Date: 2022/02/07 20:21:21
-Client: admin
-Books Ordered: 
-4pcs   test                 Unit: 12.00  Total: 48.00
-
------------
-Total: 48.00

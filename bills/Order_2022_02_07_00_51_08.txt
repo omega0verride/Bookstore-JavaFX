@@ -1,9 +1,0 @@
-Order: Order_2022_02_07_00_51_08
-Date: 2022/02/07 00:51:08
-Client: test1
-Books Ordered: 
-5pcs   test                 Unit: 109.00 Total: 545.00
-4pcs   test1                Unit: 90.00  Total: 360.00
-
------------
-Total: 905.00

@@ -1,5 +1,6 @@
 package application.bookstore.controllers;
 
+import application.bookstore.ui.ChangePasswordDialog;
 import application.bookstore.views.*;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
@@ -18,7 +19,7 @@ public class MainController {
         this.mainStage = mainStage;
 
         Tab startupTab = new Tab("New Order");
-        startupTab.setContent(new OrderView(mainView, startupTab).getView());
+        startupTab.setContent(new OrderView(mainView, mainStage, startupTab).getView());
         openTab(startupTab);
 
         setKeyBinds();
@@ -47,14 +48,14 @@ public class MainController {
         });
         mainView.getMenuItemNewOrder().setOnAction(e -> {
             Tab order = new Tab("New Order");
-            OrderView o = new OrderView(mainView, order);
+            OrderView o = new OrderView(mainView, mainStage, order);
             order.setContent(o.getView());
             mainView.getTabPane().getTabs().add(order);
             mainView.getTabPane().getSelectionModel().select(order);
         });
         mainView.getMenuItemNewAdvancedOrder().setOnAction(e -> {
             Tab order = new Tab("New Advanced Order");
-            OrderView o = new OrderView(mainView, order, true);
+            OrderView o = new OrderView(mainView, mainStage, order, true);
             order.setContent(o.getView());
             mainView.getTabPane().getTabs().add(order);
             mainView.getTabPane().getSelectionModel().select(order);

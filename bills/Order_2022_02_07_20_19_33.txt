@@ -1,8 +1,0 @@
-Order: Order_2022_02_07_20_19_33
-Date: 2022/02/07 20:19:33
-Client: safas
-Books Ordered: 
-2pcs   test                 Unit: 12.00  Total: 24.00
-
------------
-Total: 24.00
