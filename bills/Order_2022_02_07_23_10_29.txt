@@ -1,0 +1,7 @@
+Order: Order_2022_02_07_23_10_29
+Date: 2022/02/07 23:10:29
+Client: asd
+Books Ordered: 
+
+-----------
+Total: 0.00

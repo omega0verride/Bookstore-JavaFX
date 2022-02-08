@@ -1,0 +1,8 @@
+Order: Order_2022_02_07_23_29_58
+Date: 2022/02/07 23:29:58
+Client: asdfsa
+Books Ordered: 
+1pcs   test2_               Unit: 109.00 Total: 109.00
+
+-----------
+Total: 109.00

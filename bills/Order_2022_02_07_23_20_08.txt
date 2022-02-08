@@ -1,0 +1,8 @@
+Order: Order_2022_02_07_23_20_08
+Date: 2022/02/07 23:20:08
+Client: AKSHDK
+Books Ordered: 
+100pcs test2_               Unit: 109.00 Total: 10900.00
+
+-----------
+Total: 10900.00

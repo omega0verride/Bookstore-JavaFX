@@ -1,0 +1,8 @@
+Order: Order_2022_02_07_23_23_16
+Date: 2022/02/07 23:23:16
+Client: tesdaf
+Books Ordered: 
+9pcs   1231                 Unit: 123.00 Total: 1107.00
+
+-----------
+Total: 1107.00

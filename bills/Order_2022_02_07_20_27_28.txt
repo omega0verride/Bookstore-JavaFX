@@ -1,0 +1,8 @@
+Order: Order_2022_02_07_20_27_28
+Date: 2022/02/07 20:27:28
+Client: asdasa
+Books Ordered: 
+1pcs   test                 Unit: 109.00 Total: 109.00
+
+-----------
+Total: 109.00

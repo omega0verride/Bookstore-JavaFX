@@ -1,0 +1,8 @@
+Order: Order_2022_02_07_20_27_04
+Date: 2022/02/07 20:27:04
+Client: asda
+Books Ordered: 
+1pcs   test                 Unit: 12.00  Total: 12.00
+
+-----------
+Total: 12.00

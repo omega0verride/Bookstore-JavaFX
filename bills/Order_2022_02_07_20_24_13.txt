@@ -1,0 +1,8 @@
+Order: Order_2022_02_07_20_24_13
+Date: 2022/02/07 20:24:13
+Client: asdasd
+Books Ordered: 
+1pcs   test                 Unit: 12.00  Total: 12.00
+
+-----------
+Total: 12.00

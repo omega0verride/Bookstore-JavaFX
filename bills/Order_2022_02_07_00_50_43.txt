@@ -1,0 +1,9 @@
+Order: Order_2022_02_07_00_50_43
+Date: 2022/02/07 00:50:43
+Client: test1
+Books Ordered: 
+1pcs   test                 Unit: 109.00 Total: 109.00
+1pcs   test1                Unit: 90.00  Total: 90.00
+
+-----------
+Total: 199.00
