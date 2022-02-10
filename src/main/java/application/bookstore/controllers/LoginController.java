@@ -20,10 +20,6 @@ public class LoginController {
         addListener(view);
     }
 
-    public User getCurrentUser() {
-        return currentUser;
-    }
-
     private void addListener(LoginView view) {
         view.getView().setOnKeyPressed(e -> {
             if (e.getCode().equals(KeyCode.ENTER)) {
@@ -37,6 +33,8 @@ public class LoginController {
             User potentialUser = new User(username, password);
             if ((currentUser = User.getIfExists(potentialUser)) != null) {
                 view.setCurrentUser(currentUser);
+                // TODO: log
+                System.out.println("Logged in with user: " + currentUser);
                 primaryStage.setResizable(true);
                 nextView = new MainView(primaryStage);
                 primaryStage.setScene(new Scene(nextView.getView(), MainView.width, MainView.height));

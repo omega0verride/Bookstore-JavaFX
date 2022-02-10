@@ -12,8 +12,9 @@ public class OrderController {
     private final Stage mainStage;
 
     public OrderController(OrderView orderView, Stage mainStage) {
-        this.mainStage=mainStage;
+        this.mainStage = mainStage;
         this.orderView = orderView;
+
 //        Order.getOrders();// get data from file
         setEditListener();
         setChooseBookListener();
@@ -25,6 +26,7 @@ public class OrderController {
     private void setChooseBookListener() {
         orderView.getExistingBooksView().getTableView().setOnMousePressed(e -> {
             if (e.isPrimaryButtonDown() && e.getClickCount() == 2) {
+
                 BookOrder b = new BookOrder(1, orderView.getExistingBooksView().getTableView().getSelectionModel().getSelectedItem());
                 if (b.getQuantity() > b.getBook().getQuantity()) {
                     ControllerCommon.showErrorMessage(orderView.getResultLabel(), "There are not enough books in stock! Currently there are " + b.getBook().getQuantity() + " available.");
@@ -38,30 +40,31 @@ public class OrderController {
         });
     }
 
+    private void removeFromOrder(BookOrder b){
+        orderView.getOrder().getBooksOrdered().remove(b);
+        orderView.getExistingBooksView().getTableView().getItems().add(b.getBook());
+        orderView.getTableView().getItems().remove(b);
+        orderView.getTotalValueLabel().setText(((Float) orderView.getOrder().getTotal()).toString());
+    }
     private void clearOrder() {
         List<BookOrder> elementsToRemove = List.copyOf(orderView.getTableView().getItems());
         for (BookOrder b : elementsToRemove) {
-            orderView.getOrder().getBooksOrdered().remove(b);
-            orderView.getExistingBooksView().getTableView().getItems().add(b.getBook());
-            orderView.getTableView().getItems().remove(b);
-            orderView.getTotalValueLabel().setText(((Float) orderView.getOrder().getTotal()).toString());
+            removeFromOrder(b);
         }
     }
 
-    private void setClearListener() {
-        orderView.getClearBtn().setOnMousePressed(e -> clearOrder());
-    }
 
     private void setRemoveBookListener() {
         orderView.getTableView().setOnMousePressed(e -> {
             if (e.isPrimaryButtonDown() && e.getClickCount() == 2) {
                 BookOrder b = orderView.getTableView().getSelectionModel().getSelectedItem();
-                orderView.getOrder().getBooksOrdered().remove(b);
-                orderView.getExistingBooksView().getTableView().getItems().add(b.getBook());
-                orderView.getTableView().getItems().remove(b);
-                orderView.getTotalValueLabel().setText(((Float) orderView.getOrder().getTotal()).toString());
+                removeFromOrder(b);
             }
         });
+    }
+
+    private void setClearListener() {
+        orderView.getClearBtn().setOnMousePressed(e -> clearOrder());
     }
 
     private void setEditListener() {
@@ -89,23 +92,21 @@ public class OrderController {
     private void setCreateListener() {
         orderView.getCreateBtn().setOnMousePressed(e -> {
             orderView.getOrder().completeOrder(orderView.getCurrentUser().getUsername(), orderView.getNameField().getText());
-            if (orderView.getOrder().saveInFile()) {
+            String saveResult = orderView.getOrder().saveInFile();
+            if (saveResult.matches("1")) {
                 for (BookOrder b : orderView.getOrder().getBooksOrdered()) {
                     b.getBook().setQuantity(b.getBook().getQuantity() - b.getQuantity());
                 } // change stock quantity
-                new PrintWindow(mainStage, orderView, orderView.getOrder());
-                orderView.getOrder().print();
+                new PrintWindow(mainStage, orderView, orderView.getOrder(), this);
                 ControllerCommon.showSuccessMessage(orderView.getResultLabel(), "Order created successfully");
-                resetFields();
-//                orderView.getMainView().getTabPane().getTabs().remove(orderView.getTab());
             } else {
-                ControllerCommon.showErrorMessage(orderView.getResultLabel(), "Client name cannot be empty!");
+                ControllerCommon.showErrorMessage(orderView.getResultLabel(), "Order  creation failed!\n" + saveResult);
             }
 
         });
     }
 
-    private void resetFields() {
+    public void resetFields() {
         orderView.getNameField().setText("");
         clearOrder();
     }

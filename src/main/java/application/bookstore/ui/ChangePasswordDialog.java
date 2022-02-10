@@ -3,7 +3,6 @@ package application.bookstore.ui;
 import application.bookstore.controllers.ControllerCommon;
 import application.bookstore.models.User;
 import application.bookstore.views.View;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -14,13 +13,9 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class ChangePasswordDialog {
     private final Scene secondScene;
@@ -28,7 +23,7 @@ public class ChangePasswordDialog {
     private final Label usernameLabel;
     private final PasswordField oldPassField;
     private final PasswordField newPassField;
-    private final PasswordField newPassField1;
+    private final PasswordField ConfirmPassword;
     private final Label newPassLabel;
     private final Label messageLabel;
     private final Stage newWindow;
@@ -43,12 +38,12 @@ public class ChangePasswordDialog {
         usernameLabel = new Label("User: " + mainView.getCurrentUser().getUsername());
         oldPassField = new PasswordField();
         newPassField = new PasswordField();
-        newPassField1 = new PasswordField();
+        ConfirmPassword = new PasswordField();
         Label oldPassLabel = new Label("Old Password: ", oldPassField);
         oldPassLabel.setContentDisplay(ContentDisplay.RIGHT);
         newPassLabel = new Label("New Password: ", newPassField);
         newPassLabel.setContentDisplay(ContentDisplay.RIGHT);
-        Label newPassLabel1 = new Label("New Password: ", newPassField1);
+        Label newPassLabel1 = new Label("Confirm Password: ", ConfirmPassword);
         newPassLabel1.setContentDisplay(ContentDisplay.RIGHT);
 
         HBox h = new HBox();
@@ -94,9 +89,9 @@ public class ChangePasswordDialog {
 
     private void changePassword() {
         if (oldPassField.getText().equals(mainView.getCurrentUser().getPassword())) {
-            if (newPassField.getText().matches(newPassField1.getText())) {
+            if (newPassField.getText().matches(ConfirmPassword.getText())) {
                 User u = new User(mainView.getCurrentUser().getUsername(), newPassField.getText(), mainView.getCurrentUser().getRole());
-                if (u.isValid()) {
+                if (u.isValid().matches("1")) {
                     mainView.getCurrentUser().deleteFromFile();
                     mainView.setCurrentUser(u);
                     u.saveInFile();
@@ -107,7 +102,7 @@ public class ChangePasswordDialog {
                     });
                     d.setOnCloseRequest(e -> newWindow.close());
                 } else {
-                    ControllerCommon.showErrorMessage(messageLabel, "New Password Invalid!");
+                    ControllerCommon.showErrorMessage(messageLabel, "New Password Invalid!\n" + u.isValid());
                 }
             } else {
                 ControllerCommon.showErrorMessage(messageLabel, "New Passwords do not match!");

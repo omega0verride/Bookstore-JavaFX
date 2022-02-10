@@ -2,6 +2,7 @@ package application.bookstore.controllers;
 
 import application.bookstore.ui.ChangePasswordDialog;
 import application.bookstore.views.*;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.input.KeyCode;
@@ -18,14 +19,31 @@ public class MainController {
         this.mainView = mainView;
         this.mainStage = mainStage;
 
+        // default startup tab
         Tab startupTab = new Tab("New Order");
         startupTab.setContent(new OrderView(mainView, mainStage, startupTab).getView());
-        openTab(startupTab);
+        mainView.getTabPane().getTabs().add(startupTab); // add the tab
 
         setKeyBinds();
         setListener();
         setLogoutListener();
-//        Order.getOrders();//load order on startup
+    }
+
+    private Tab openTab(String tabLabel, Parent tabView) {
+        Tab tab = new Tab(tabLabel); // create tab
+        tab.setContent(tabView);
+
+        // check if tab is open
+        for (Tab t : mainView.getTabPane().getTabs())
+            if (t.getText().equals(tab.getText())) {
+                mainView.getTabPane().getSelectionModel().select(t);// if it is open, navigate to it (bring it up front)
+                mainStage.sizeToScene();
+                return t;
+            }
+
+        mainView.getTabPane().getTabs().add(tab); // add the tab
+        mainView.getTabPane().getSelectionModel().select(tab); // bring it up front
+        return tab;
     }
 
     private void setKeyBinds() {
@@ -35,17 +53,19 @@ public class MainController {
 
     private void setListener() {
 
-        mainView.getMenuItemViewAuthors().setOnAction((e) -> {
-            Tab authorTab = new Tab("Authors");
-            authorTab.setContent(new AuthorView().getView());
-            openTab(authorTab);
-        });
+        mainView.getMenuItemViewAuthors().setOnAction((e) -> openTab("Authors", new AuthorView().getView()));
 
-        mainView.getMenuItemViewBooks().setOnAction((e) -> {
-            Tab booksTab = new Tab("Books");
-            booksTab.setContent(new BookView().getView());
-            openTab(booksTab);
-        });
+        mainView.getMenuItemViewBooks().setOnAction((e) -> openTab("Books", new BookView().getView()));
+
+        mainView.getMenuItemViewSales().setOnAction(e -> openTab("Sales", new SalesView(mainStage).getView()));
+
+        mainView.getStatsMenu().setOnAction(e -> openTab("Stats", new StatsView().getView()));
+
+        mainView.getMenuItemChangePassword().setOnAction(e -> new ChangePasswordDialog(mainStage, mainView));
+
+        mainView.getManageUsers().setOnAction(e -> openTab("Users", new UsersView().getView()));
+
+        // Multiple new order tabs can be opened at the same time
         mainView.getMenuItemNewOrder().setOnAction(e -> {
             Tab order = new Tab("New Order");
             OrderView o = new OrderView(mainView, mainStage, order);
@@ -53,6 +73,7 @@ public class MainController {
             mainView.getTabPane().getTabs().add(order);
             mainView.getTabPane().getSelectionModel().select(order);
         });
+
         mainView.getMenuItemNewAdvancedOrder().setOnAction(e -> {
             Tab order = new Tab("New Advanced Order");
             OrderView o = new OrderView(mainView, mainStage, order, true);
@@ -61,25 +82,6 @@ public class MainController {
             mainView.getTabPane().getSelectionModel().select(order);
             mainStage.sizeToScene();
         });
-        mainView.getMenuItemViewSales().setOnAction(e -> {
-            Tab sales = new Tab("Sales");
-            sales.setContent(new SalesView().getView());
-            openTab(sales);
-        });
-        mainView.getStatsMenu().setOnAction(e -> {
-            Tab stats = new Tab("Stats");
-            stats.setContent(new StatsView().getView());
-            openTab(stats);
-        });
-        mainView.getMenuItemChangePassword().setOnAction(e -> {
-            new ChangePasswordDialog(mainStage, mainView);
-        });
-        mainView.getManageUsers().setOnAction(e -> {
-            Tab users = new Tab("Users");
-            users.setContent(new UsersView().getView());
-            openTab(users);
-        });
-
     }
 
     private void setLogoutListener() {
@@ -95,20 +97,6 @@ public class MainController {
             Scene scene = new Scene(loginView.getView(), LoginView.width, LoginView.height);
             mainStage.setScene(scene);
         });
-    }
-
-    private Tab openTab(Tab tab) {
-        // check if tab is open
-        for (Tab t : mainView.getTabPane().getTabs()) {
-            if (t.getText().equals(tab.getText())) {
-                mainView.getTabPane().getSelectionModel().select(t);// if it is open, navigate to it (bring it up front)
-                mainStage.sizeToScene();
-                return t;
-            }
-        }
-        mainView.getTabPane().getTabs().add(tab); // add the tab
-        mainView.getTabPane().getSelectionModel().select(tab); // bring it up front
-        return tab;
     }
 
 }

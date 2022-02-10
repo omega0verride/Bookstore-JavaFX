@@ -2,57 +2,53 @@ package application.bookstore.views;
 
 import application.bookstore.controllers.SalesController;
 import application.bookstore.models.Order;
+import application.bookstore.ui.PrintButton;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
-import javafx.util.converter.FloatStringConverter;
+import javafx.scene.layout.HBox;
+import javafx.stage.Stage;
 
 
 public class SalesView extends View {
-    private final BorderPane pane = new BorderPane();
+    private static final PrintButton printButton = new PrintButton();
+    private final BorderPane mainPane = new BorderPane();
+    private final SearchView searchView = new SearchView("Search for an order");
     private final TableView<Order> tableView = new TableView<>();
     private final TableColumn<Order, String> clientNameCol = new TableColumn<>("Client Name");
     private final TableColumn<Order, String> usernameCol = new TableColumn<>("Username");
     private final TableColumn<Order, String> orderIDCol = new TableColumn<>("Order ID");
     private final TableColumn<Order, Float> totalPriceCol = new TableColumn<>("Total");
-    private final SearchView searchView = new SearchView("Search for an order");
 
-
-    public SalesView() {
+    public SalesView(Stage mainStage) {
         setTableView();
-        new SalesController(this);
+        new SalesController(this, mainStage);
     }
 
 
     private void setTableView() {
-        tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        tableView.setMinHeight(200);
+        tableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         tableView.setEditable(false);
         tableView.setItems(FXCollections.observableArrayList(Order.getOrders()));
-
         clientNameCol.setCellValueFactory(
                 new PropertyValueFactory<>("clientName")
         );
-        clientNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
-
         usernameCol.setCellValueFactory(
                 new PropertyValueFactory<>("username")
         );
-        usernameCol.setCellFactory(TextFieldTableCell.forTableColumn());
-
         orderIDCol.setCellValueFactory(
                 new PropertyValueFactory<>("orderID")
         );
-        orderIDCol.setCellFactory(TextFieldTableCell.forTableColumn());
-
         totalPriceCol.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue().getTotal()));
-        totalPriceCol.setCellFactory(TextFieldTableCell.forTableColumn(new FloatStringConverter()));
-
 
         tableView.getColumns().addAll(clientNameCol, usernameCol, totalPriceCol, orderIDCol);
     }
@@ -60,10 +56,16 @@ public class SalesView extends View {
 
     @Override
     public Parent getView() {
-        tableView.setMinHeight(200);
-        pane.setTop(searchView.getSearchPane());
-        pane.setCenter(tableView);
-        return pane;
+        HBox controls = new HBox();
+        controls.setAlignment(Pos.CENTER);
+        controls.setSpacing(10);
+        controls.setPadding(new Insets(10));
+        controls.getChildren().addAll(printButton);
+
+        mainPane.setTop(searchView.getSearchPane());
+        mainPane.setCenter(tableView);
+        mainPane.setBottom(controls);
+        return mainPane;
     }
 
     public SearchView getSearchView() {
@@ -72,5 +74,9 @@ public class SalesView extends View {
 
     public TableView<Order> getTableView() {
         return tableView;
+    }
+
+    public Button getPrintButton() {
+        return printButton;
     }
 }

@@ -8,18 +8,15 @@ import java.util.Arrays;
 
 public class User extends BaseModel implements Serializable {
     public static final String FILE_PATH = "data/users.ser";
-    private static final ArrayList<User> users = new ArrayList<>();
-    private static final File DATA_FILE = new File(FILE_PATH);
-
     @Serial
     private static final long serialVersionUID = 1234567L;
+    private static final File DATA_FILE = new File(FILE_PATH);
+
+    private static final ArrayList<User> users = new ArrayList<>();
 
     private String username;
     private String password;
     private Role role;
-
-    public User() {
-    }
 
     public User(String username, String password, Role role) {
         this(username, password);
@@ -39,10 +36,12 @@ public class User extends BaseModel implements Serializable {
     }
 
     public static ArrayList<User> getSearchResults(String searchText) {
+        searchText = ".*" + searchText.toLowerCase() + ".*";
         ArrayList<User> searchResults = new ArrayList<>();
-        for (User User : getUsers())
-            if (User.getUsername().matches(".*" + searchText + ".*"))
+        for (User User : getUsers()) { // this one need only a simple search by username
+            if (User.getUsername().toLowerCase().matches(searchText))
                 searchResults.add(User);
+        }
         return searchResults;
     }
 
@@ -58,13 +57,81 @@ public class User extends BaseModel implements Serializable {
                 }
                 inputStream.close();
             } catch (EOFException eofException) {
-                System.out.println("End of file reached!");
+                System.out.println("End of users file reached!");
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
         }
         return users;
     }
+
+    public boolean usernameExists() {
+        for (User u : users)
+            if (u.getUsername().equals(this.getUsername()))
+                return true;
+        return false;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof User) {
+            User other = (User) obj;
+            return other.getUsername().equals(getUsername()) && other.getPassword().equals(getPassword());
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return "\nUser{" +
+                "\n\t\"username\": " + getUsername() +
+                ",\n\t\"password\": " + getPassword() +
+                ",\n\t\"role\": " + getRole() +
+                "\n}";
+    }
+
+    @Override
+    public String isValid() {
+        // username and password must contain at least 1 word character and no spaces [a-zA-Z_0-9]
+        if (!username.matches("\\w+"))
+            return "Username must contain at least 1 lower/upper case letters, numbers or underscore.";
+        if (!password.matches("\\w+"))
+            return "Password must contain at least 1 lower/upper case letters, numbers or underscore.";
+        return "1";
+    }
+
+    @Override
+    public String saveInFile() {
+        String saved = super.save(User.DATA_FILE);
+        if (saved.matches("1"))
+            users.add(this);
+        return saved;
+    }
+
+    @Override
+    public boolean updateFile() {
+        try {
+            FileHandler.overwriteCurrentListToFile(DATA_FILE, users);
+        } catch (Exception e) {
+            System.out.println(Arrays.toString(e.getStackTrace()));
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean deleteFromFile() {
+        users.remove(this);
+        try {
+            FileHandler.overwriteCurrentListToFile(DATA_FILE, users);
+        } catch (Exception e) {
+            users.add(this);
+            System.out.println(Arrays.toString(e.getStackTrace()));
+            return false;
+        }
+        return true;
+    }
+
 
     public String getUsername() {
         return username;
@@ -88,71 +155,5 @@ public class User extends BaseModel implements Serializable {
 
     public void setRole(Role role) {
         this.role = role;
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "username=" + getUsername() +
-                ", password=" + getPassword() +
-                ", role=" + getRole() +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof User) {
-            User other = (User) obj;
-            return other.getUsername().equals(getUsername()) && other.getPassword().equals(getPassword());
-        }
-        return false;
-    }
-
-    public boolean usernameExists() {
-        for (User u : users) {
-            if (u.getUsername().equals(this.getUsername()))
-                return true;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean saveInFile() {
-        boolean saved = super.save(User.DATA_FILE);
-        if (saved)
-            users.add(this);
-        return saved;
-    }
-
-    @Override
-    public boolean updateFile() {
-        try {
-            FileHandler.overwriteCurrentListToFile(DATA_FILE, users);
-        } catch (Exception e) {
-            System.out.println(Arrays.toString(e.getStackTrace()));
-            return false;
-        }
-        return true;
-    }
-
-    @Override
-    public boolean isValid() {
-        if (!username.matches("\\w+"))
-            return false;
-        return password.matches("\\w+");
-
-    }
-
-    @Override
-    public boolean deleteFromFile() {
-        users.remove(this);
-        try {
-            FileHandler.overwriteCurrentListToFile(DATA_FILE, users);
-        } catch (Exception e) {
-            users.add(this);
-            System.out.println(Arrays.toString(e.getStackTrace()));
-            return false;
-        }
-        return true;
     }
 }

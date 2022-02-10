@@ -12,6 +12,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 
 public class SearchView {
+
     private final String searchLabel;
     private final TextField searchField = new TextField();
     private final Button searchBtn = new SearchButton();
@@ -46,11 +47,13 @@ public class SearchView {
     private void setSearchForm() {
         Label label = new Label(searchLabel, searchField);
         label.setContentDisplay(ContentDisplay.RIGHT);
+
         searchField.setOnKeyPressed(e -> {
             if (e.getCode().equals(KeyCode.ENTER)) {
                 searchBtn.fire();
             }
         });
+
         searchPane.setPadding(new Insets(20));
         searchPane.setSpacing(20);
         searchPane.setAlignment(Pos.CENTER);

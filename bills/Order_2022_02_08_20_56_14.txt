@@ -1,0 +1,8 @@
+Order: Order_2022_02_08_20_56_14
+Date: 2022/02/08 20:56:14
+Client: asd
+Books Ordered: 
+3pcs   test2_               Unit: 109.00 Total: 327.00
+
+-----------------------
+Total: 327.00

@@ -28,12 +28,12 @@ public class AuthorController {
             Author authorToEdit = e.getRowValue();
             String oldVal = authorToEdit.getFirstName();
             authorToEdit.setFirstName(e.getNewValue());
-            if (authorToEdit.isValid()) {
+            if (authorToEdit.isValid().matches("1")) {
                 authorToEdit.updateFile();
             } else {
+                ControllerCommon.showErrorMessage(authorView.getResultLabel(), "Edit value invalid!\n" + authorToEdit.isValid());
                 authorToEdit.setFirstName(oldVal);
                 authorView.getTableView().getItems().set(authorView.getTableView().getItems().indexOf(authorToEdit), authorToEdit);
-                ControllerCommon.showErrorMessage(authorView.getResultLabel(), "Edit value invalid!");
             }
         });
 
@@ -41,12 +41,12 @@ public class AuthorController {
             Author authorToEdit = e.getRowValue();
             String oldVal = authorToEdit.getLastName();
             authorToEdit.setLastName(e.getNewValue());
-            if (authorToEdit.isValid()) {
+            if (authorToEdit.isValid().matches("1")) {
                 authorToEdit.updateFile();
             } else {
+                ControllerCommon.showErrorMessage(authorView.getResultLabel(), "Edit value invalid!\n" + authorToEdit.isValid());
                 authorToEdit.setLastName(oldVal);
                 authorView.getTableView().getItems().set(authorView.getTableView().getItems().indexOf(authorToEdit), authorToEdit);
-                ControllerCommon.showErrorMessage(authorView.getResultLabel(), "Edit value invalid!");
             }
         });
     }
@@ -84,13 +84,14 @@ public class AuthorController {
             String lastName = authorView.getLastNameField().getText();
             Author author = new Author(firstName, lastName);
             if (!author.exists()) {
-                if (author.saveInFile()) {
+                String saveResult = author.saveInFile();
+                if (saveResult.matches("1")) {
                     authorView.getTableView().getItems().add(author);
                     ControllerCommon.showSuccessMessage(authorView.getResultLabel(), "Author created successfully!");
                     authorView.getFirstNameField().setText("");
                     authorView.getLastNameField().setText("");
                 } else {
-                    ControllerCommon.showErrorMessage(authorView.getResultLabel(), "Author creation failed!");
+                    ControllerCommon.showErrorMessage(authorView.getResultLabel(), "Author creation failed!\n" + saveResult);
                 }
             } else {
                 ControllerCommon.showErrorMessage(authorView.getResultLabel(), "Author with this Full Name exists.");

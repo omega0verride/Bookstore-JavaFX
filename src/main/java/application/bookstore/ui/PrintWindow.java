@@ -1,27 +1,17 @@
 package application.bookstore.ui;
 
-import application.bookstore.controllers.ControllerCommon;
+import application.bookstore.controllers.OrderController;
 import application.bookstore.models.Order;
-import application.bookstore.models.User;
 import application.bookstore.views.View;
-import javafx.application.Platform;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class PrintWindow {
     private final Scene secondScene;
@@ -31,10 +21,17 @@ public class PrintWindow {
     private final Stage mainStage;
     private final View mainView;
     private final VBox v;
+    private final OrderController controller;
+
 
     public PrintWindow(Stage mainStage, View mainView, Order data) {
+        this(mainStage, mainView, data, null);
+    }
+
+    public PrintWindow(Stage mainStage, View mainView, Order data, OrderController controller) {
         this.mainStage = mainStage;
         this.mainView = mainView;
+        this.controller = controller;
 
         dataLabel = new Label(data.toString());
 
@@ -58,10 +55,15 @@ public class PrintWindow {
         newWindow.initModality(Modality.WINDOW_MODAL);
         newWindow.initOwner(mainStage);
 
-        okButton.setOnMousePressed(ev -> newWindow.close());
+        okButton.setOnMousePressed(ev -> {
+            newWindow.close();
+            if (controller != null) controller.resetFields();
+        });
         printButton.setOnMousePressed(ev -> {
             data.print();
             newWindow.close();
+            if (controller != null)
+                controller.resetFields();
         });
 
         addKeyBind();
@@ -73,6 +75,8 @@ public class PrintWindow {
         v.setOnKeyPressed(e -> {
             if (e.getCode().equals(KeyCode.ENTER)) {
                 newWindow.close();
+                if (controller != null)
+                    controller.resetFields();
             }
         });
 

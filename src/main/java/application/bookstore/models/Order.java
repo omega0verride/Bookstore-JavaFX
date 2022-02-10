@@ -14,8 +14,10 @@ public class Order extends BaseModel implements Serializable {
     @Serial
     private static final long serialVersionUID = 1234567L;
     private static final ArrayList<Order> orders = new ArrayList<>();
+
     private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
     private static final DateTimeFormatter idFormatter = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");
+
     private String clientName;
     private String username;
     private String orderID;
@@ -28,10 +30,14 @@ public class Order extends BaseModel implements Serializable {
     }
 
     public static ArrayList<Order> getSearchResults(String searchText) {
+        searchText = ".*" + searchText + ".*";
         ArrayList<Order> searchResults = new ArrayList<>();
-        for (Order order : getOrders())
-            if (order.getClientName().matches(".*" + searchText + ".*"))
+        for (Order order : getOrders()){
+            if (order.getClientName().toLowerCase().matches(searchText))
                 searchResults.add(order);
+            else if (order.getUsername().toLowerCase().matches(searchText))
+                searchResults.add(order);
+        }
         return searchResults;
     }
 
@@ -62,6 +68,16 @@ public class Order extends BaseModel implements Serializable {
         LocalDateTime now = LocalDateTime.now();
         setDate(dtf.format(now));
         setOrderID("Order_" + idFormatter.format(now));
+
+        for (int i = 0; i < getBooksOrdered().size(); i++)
+            booksOrdered.set(i, booksOrdered.get(i).clone());// we need to clone them because the originals will be removed from the view and thus unreferenced
+    }
+
+    @Override
+    public String isValid() {
+        if (!clientName.matches("([a-zA-Z0-9_]{1,30}\\s*)+"))
+            return "Client Name must contain 1 to 30 lower/upper case letters numbers spaces or underscore.";
+        return "1";
     }
 
     @Override
@@ -69,7 +85,7 @@ public class Order extends BaseModel implements Serializable {
         String s = "Order: " + orderID + "\nDate: " + date + "\nClient: " + clientName + "\nBooks Ordered: \n";
         for (BookOrder b : booksOrdered)
             s += b + "\n";
-        s += String.format("\n-----------\nTotal: %.2f", getTotal());
+        s += String.format("\n-----------------------\nTotal: %.2f", getTotal());
         return s;
     }
 
@@ -87,8 +103,48 @@ public class Order extends BaseModel implements Serializable {
             p.close();
         } catch (Exception ex) {
             System.out.println(Arrays.toString(ex.getStackTrace()));
+            //TODO: log
         }
     }
+
+    @Override
+    public String saveInFile() {
+        if (orders.size()==0) //  load orders before tou add one
+            getOrders();
+        String saved = super.save(Order.DATA_FILE);
+        if (saved.matches("1"))
+            orders.add(this);
+        return saved;
+    }
+
+
+    @Override
+    public boolean updateFile() {
+        if (orders.size()==0) //  load orders before tou add one
+            getOrders();
+        try {
+            FileHandler.overwriteCurrentListToFile(DATA_FILE, orders);
+        } catch (Exception e) {
+            System.out.println(Arrays.toString(e.getStackTrace()));
+            return false;
+        }
+        return true;
+    }
+
+
+    @Override
+    public boolean deleteFromFile() {
+        orders.remove(this);
+        try {
+            FileHandler.overwriteCurrentListToFile(DATA_FILE, orders);
+        } catch (Exception e) {
+            orders.add(this);
+            System.out.println(Arrays.toString(e.getStackTrace()));
+            return false;
+        }
+        return true;
+    }
+
 
     public ArrayList<BookOrder> getBooksOrdered() {
         return booksOrdered;
@@ -130,39 +186,4 @@ public class Order extends BaseModel implements Serializable {
         this.date = date;
     }
 
-    public boolean saveInFile() {
-        Order.getOrders();
-        boolean saved = super.save(Order.DATA_FILE);
-        if (saved)
-            orders.add(this);
-        return saved;
-    }
-
-    @Override
-    public boolean updateFile() {
-        try {
-            FileHandler.overwriteCurrentListToFile(DATA_FILE, orders);
-        } catch (Exception e) {
-            System.out.println(Arrays.toString(e.getStackTrace()));
-            return false;
-        }
-        return true;
-    }
-
-    public boolean isValid() {
-        return clientName.matches("([a-zA-Z0-9_]{1,30}\\s*)+");
-    }
-
-    @Override
-    public boolean deleteFromFile() {
-        orders.remove(this);
-        try {
-            FileHandler.overwriteCurrentListToFile(DATA_FILE, orders);
-        } catch (Exception e) {
-            orders.add(this);
-            System.out.println(Arrays.toString(e.getStackTrace()));
-            return false;
-        }
-        return true;
-    }
 }

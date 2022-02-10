@@ -17,7 +17,7 @@ import java.util.TimerTask;
 
 public class ControllerCommon {
 
-    static void showSuccessMessage(Label l, String t) {
+    public static void showSuccessMessage(Label l, String t) {
         l.setText(t);
         l.setTextFill(Color.DARKGREEN);
         scheduleLabelReset(l, 5000);

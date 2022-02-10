@@ -39,10 +39,8 @@ public class MainView extends View {
     private final MenuItem manageUsers = new MenuItem("Manage Users");
     private final MenuItem menuItemLogout = new MenuItem("Logout");
 
-
     private final LogoutButton logoutButton = new LogoutButton();
     private final ProfileButton userProfileButton = new ProfileButton();
-
 
     private final TabPane tabPane = new TabPane();
 
@@ -52,7 +50,7 @@ public class MainView extends View {
 
     @Override
     public Parent getView() {
-        BorderPane borderPane = new BorderPane();
+        BorderPane mainPane = new BorderPane();
 
         Role currentRole = (getCurrentUser() != null ? getCurrentUser().getRole() : null);
         if (currentRole != null) {
@@ -73,8 +71,6 @@ public class MainView extends View {
 
         VBox topPane = new VBox();
         topPane.getChildren().addAll(menuBar);
-        borderPane.setTop(topPane);
-        borderPane.setCenter(tabPane);
 
         HBox bottomControls = new HBox();
         bottomControls.setAlignment(Pos.CENTER);
@@ -83,12 +79,15 @@ public class MainView extends View {
         final Pane spacer_ = new Pane();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         HBox.setHgrow(spacer_, Priority.ALWAYS);
-        bottomControls.getChildren().addAll(userProfileButton, spacer_, new Text(getCurrentUser().getUsername() + ", welcome to our bookstore."), spacer, logoutButton);
+        bottomControls.getChildren().addAll(userProfileButton, spacer_, new Text("Hi "+getCurrentUser().getUsername() + ", welcome to our bookstore."), spacer, logoutButton);
         VBox b = new VBox(bottomControls);
         b.setMinHeight(30);
-        borderPane.setBottom(b);
 
-        return borderPane;
+        mainPane.setTop(topPane);
+        mainPane.setCenter(tabPane);
+        mainPane.setBottom(b);
+
+        return mainPane;
     }
 
 

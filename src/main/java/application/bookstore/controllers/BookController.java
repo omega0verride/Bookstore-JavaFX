@@ -49,18 +49,20 @@ public class BookController {
         bookView.getSaveBtn().setOnAction(e -> {
             String isbn = bookView.getIsbnField().getText();
             String title = bookView.getTitleField().getText();
+            int quantity = Integer.parseInt(bookView.getQuantityField().getText());
             float purchasedPrice = Float.parseFloat(bookView.getPurchasedPriceField().getText());
             float sellingPrice = Float.parseFloat(bookView.getSellingPriceField().getText());
             Author author = bookView.getAuthorsComboBox().getValue();
-            Book book = new Book(isbn, title, purchasedPrice, sellingPrice, author);
+            Book book = new Book(isbn, title, quantity, purchasedPrice, sellingPrice, author);
 
             if (!book.exists()) {
-                if (book.saveInFile()) {
+                String saveResult = book.saveInFile();
+                if (saveResult.matches("1")) {
                     bookView.getTableView().getItems().add(book);
                     ControllerCommon.showSuccessMessage(bookView.getResultLabel(), "Book created successfully");
                     resetFields();
                 } else {
-                    ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Book creation failed");
+                    ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Book creation failed!\n" + saveResult);
                 }
             } else {
                 ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Book with this ISBN exists.");
@@ -88,12 +90,12 @@ public class BookController {
             Book bookToEdit = e.getRowValue();
             String oldVal = bookToEdit.getIsbn();
             bookToEdit.setIsbn(e.getNewValue());
-            if (bookToEdit.isValid()) {
+            if (bookToEdit.isValid().matches("1")) {
                 bookToEdit.updateFile();
             } else {
+                ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Edit value invalid!\n" + bookToEdit.isValid());
                 bookToEdit.setIsbn(oldVal);
                 bookView.getTableView().getItems().set(bookView.getTableView().getItems().indexOf(bookToEdit), bookToEdit);
-                ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Edit value invalid!");
             }
         });
 
@@ -101,12 +103,12 @@ public class BookController {
             Book bookToEdit = e.getRowValue();
             String oldVal = bookToEdit.getTitle();
             bookToEdit.setTitle(e.getNewValue());
-            if (bookToEdit.isValid()) {
+            if (bookToEdit.isValid().matches("1")) {
                 bookToEdit.updateFile();
             } else {
+                ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Edit value invalid!\n" + bookToEdit.isValid());
                 bookToEdit.setTitle(oldVal);
                 bookView.getTableView().getItems().set(bookView.getTableView().getItems().indexOf(bookToEdit), bookToEdit);
-                ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Edit value invalid!");
             }
         });
 
@@ -114,12 +116,12 @@ public class BookController {
             Book bookToEdit = e.getRowValue();
             int oldVal = bookToEdit.getQuantity();
             bookToEdit.setQuantity(e.getNewValue());
-            if (bookToEdit.isValid()) {
+            if (bookToEdit.isValid().matches("1")) {
                 bookToEdit.updateFile();
             } else {
+                ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Edit value invalid!\n" + bookToEdit.isValid());
                 bookToEdit.setQuantity(oldVal);
                 bookView.getTableView().getItems().set(bookView.getTableView().getItems().indexOf(bookToEdit), bookToEdit);
-                ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Edit value invalid!");
             }
         });
 
@@ -127,12 +129,12 @@ public class BookController {
             Book bookToEdit = e.getRowValue();
             float oldVal = bookToEdit.getPurchasedPrice();
             bookToEdit.setPurchasedPrice(e.getNewValue());
-            if (bookToEdit.isValid()) {
+            if (bookToEdit.isValid().matches("1")) {
                 bookToEdit.updateFile();
             } else {
+                ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Edit value invalid!\n" + bookToEdit.isValid());
                 bookToEdit.setPurchasedPrice(oldVal);
                 bookView.getTableView().getItems().set(bookView.getTableView().getItems().indexOf(bookToEdit), bookToEdit);
-                ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Edit value invalid!");
             }
         });
 
@@ -140,12 +142,12 @@ public class BookController {
             Book bookToEdit = e.getRowValue();
             float oldVal = bookToEdit.getSellingPrice();
             bookToEdit.setSellingPrice(e.getNewValue());
-            if (bookToEdit.isValid()) {
+            if (bookToEdit.isValid().matches("1")) {
                 bookToEdit.updateFile();
             } else {
+                ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Edit value invalid!\n" + bookToEdit.isValid());
                 bookToEdit.setSellingPrice(oldVal);
                 bookView.getTableView().getItems().set(bookView.getTableView().getItems().indexOf(bookToEdit), bookToEdit);
-                ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Edit value invalid!");
             }
         });
 

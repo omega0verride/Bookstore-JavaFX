@@ -47,7 +47,7 @@ public class Main extends Application {
     @Override
     public void start(Stage stage) {
         LoginView loginView = new LoginView();
-        LoginController controller = new LoginController(loginView, stage);
+        new LoginController(loginView, stage);
         Scene scene = new Scene(loginView.getView(), LoginView.width, LoginView.height);
         stage.setTitle("Bookstore");
         stage.setScene(scene);
