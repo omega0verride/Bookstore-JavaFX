@@ -30,7 +30,7 @@ public class Main extends Application {
         }
 
         loadData();
-        createAdminAndData();
+        createAdminAndData(); // create user:admin password:admin and sample data if it is the first time running (data/users.ser does not exist)
         launch(args);
     }
 
@@ -40,6 +40,10 @@ public class Main extends Application {
             ControllerCommon.LOGGER.info("Creating startup Data...");
             new File(BaseModel.FOLDER_PATH).mkdirs();
             User u = new User("admin", "admin", Role.ADMIN);
+            ControllerCommon.LOGGER.log(Level.INFO, u.saveInFile());
+            u = new User("manager", "manager", Role.ADMIN);
+            ControllerCommon.LOGGER.log(Level.INFO, u.saveInFile());
+            u = new User("librarian", "librarian", Role.ADMIN);
             ControllerCommon.LOGGER.log(Level.INFO, u.saveInFile());
             Author a = new Author("Albert", "Camus");
             a.saveInFile();
