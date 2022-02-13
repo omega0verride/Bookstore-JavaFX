@@ -19,3 +19,6 @@ Added a tablegenerator to show the books ordered as a table in the receipt. (Thi
 Cleaned up the code and added logging.
 
 "Profile" and "Settings" have not been implemented yet. 
+
+Was going to add line charts based on time intervals chosen by the user but closed the project because of deadlines.
+https://docs.oracle.com/javafx/2/charts/line-chart.htm

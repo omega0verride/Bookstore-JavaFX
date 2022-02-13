@@ -1,10 +1,13 @@
 package application.bookstore.views;
 
+import application.bookstore.controllers.ControllerCommon;
 import application.bookstore.controllers.StatsController;
+import application.bookstore.models.Book;
 import application.bookstore.models.BookOrder;
 import application.bookstore.models.Order;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -14,10 +17,12 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.logging.Level;
 
 public class StatsView extends View {
 
-    private final VBox vBox = new VBox();
 
 
     public StatsView() {
@@ -26,189 +31,187 @@ public class StatsView extends View {
 
     @Override
     public Parent getView() {
-
         BorderPane borderPane = new BorderPane();
-
-        vBox.setSpacing(10);
+        VBox vBox = new VBox();
+        vBox.setSpacing(50);
         vBox.setAlignment(Pos.CENTER);
 
-        ObservableList<Order> orders = Order.getOrders();
+        vBox.getChildren().addAll(new customPieChart(customPieChart.dataOptions.Client_Based_Total_Income),
+                new customPieChart(customPieChart.dataOptions.User_Based_Total_Income),
+                new customPieChart(customPieChart.dataOptions.Book_Based_Total_Income),
+                new customPieChart(customPieChart.dataOptions.Book_Based_Units_Sold));
 
-        System.out.println(orders);
-
-
-        ScrollPane p = new ScrollPane();
-
-        vBox.getChildren().addAll(new usernameBasedChart(orders));
-//        vBox.getChildren().addAll(new bookBasedChart(orders));
-//        vBox.getChildren().addAll(new clientBasedChart(orders));
-
-//        HBox hBox = new HBox();
-//        hBox.setAlignment(Pos.CENTER);
-//        hBox.getChildren().add(p);
-        p.setContent(vBox);
-        p.setFitToWidth(true);
-        borderPane.setCenter(p);
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setContent(vBox);
+        scrollPane.setFitToWidth(true);
+        borderPane.setCenter(scrollPane);
         return borderPane;
     }
 
-    class usernameBasedChart extends PieChart {
 
-        public usernameBasedChart(ObservableList<Order> orders) {
-            ObservableList<data> filteredOrders = FXCollections.observableArrayList();
+
+    class customPieChart extends PieChart {
+
+        public enum dataOptions{
+            Client_Based_Total_Income,
+            User_Based_Total_Income,
+            Book_Based_Total_Income,
+            Book_Based_Units_Sold,
+        }
+
+        public enum Unit{
+            $,
+            pcs
+        }
+
+        public customPieChart(dataOptions option) {
+            ObservableList<Data> pieChartData = FXCollections.observableArrayList();
+
+            ObservableList<Order> orders = Order.getOrders();
+            orders.addListener(new ListChangeListener() {
+                @Override
+                public void onChanged(ListChangeListener.Change change) {
+                    populateChartData(orders, pieChartData, option);
+                }
+            });
+
+            populateChartData(orders, pieChartData, option);
+
+            super.setData(pieChartData);
+            super.setTitle(option.toString().replaceAll("_", " "));
+        }
+
+
+        private void populateChartData(List<Order> orders, ObservableList<PieChart.Data> pieChartData, dataOptions option) {
+            pieChartData.clear();
+
+            if (option==dataOptions.User_Based_Total_Income)
+                groupByUser(orders, pieChartData);
+            else if (option==dataOptions.Client_Based_Total_Income)
+                groupByClientName(orders, pieChartData);
+            else if (option==dataOptions.Book_Based_Total_Income)
+                incomeGroupByBook(orders, pieChartData);
+            else if (option==dataOptions.Book_Based_Units_Sold)
+                unitsGroupByBook(orders, pieChartData);
+        }
+
+        private void addUnit(ObservableList<PieChart.Data> pieChartData, Unit u){
+            if (u==Unit.$)
+                pieChartData.forEach(data ->
+                        data.nameProperty().bind(
+                                Bindings.concat(
+                                        data.getName(), " ", Math.round(data.pieValueProperty().getValue()*100)/100.f, u.toString()
+                                )
+                        )
+                );
+            else if (u==Unit.pcs)
+                pieChartData.forEach(data ->
+                        data.nameProperty().bind(
+                                Bindings.concat(
+                                        data.getName(), " ", data.pieValueProperty(), u.toString()
+                                )
+                        )
+                );
+        }
+
+        private void groupByUser(List<Order> orders, ObservableList<PieChart.Data> pieChartData){
             for (Order o : orders) {
                 boolean match = false;
-                for (data d : filteredOrders) {
-                    if (o.getUsername().equals(d.username)) {
-                        d.total += o.getTotal();
+                for (PieChart.Data d : pieChartData) {
+                    if (o.getUsername().equals(d.getName())) {
+                        d.setPieValue(Math.round(d.getPieValue()+o.getTotal()));
                         match = true;
                         break;
                     }
                 }
-                if (!match) {
-                    data data_ = new data();
-                    data_.username = o.getUsername();
-                    data_.total = o.getTotal();
-                    filteredOrders.add(data_);
-                }
+                if (!match)
+                    pieChartData.add(new PieChart.Data(o.getUsername(), o.getTotal()));
             }
-
-            System.out.println(filteredOrders);
-
-            ObservableList<Data> pieChartData = FXCollections.observableArrayList();
-
-            for (data d : filteredOrders) {
-                pieChartData.add(new Data(d.username, d.total));
-            }
-
-            pieChartData.forEach(data ->
-                    data.nameProperty().bind(
-                            Bindings.concat(
-                                    data.getName(), " ", data.pieValueProperty(), " $"
-                            )
-                    )
-            );
-            super.setData(pieChartData);
-            super.setTitle("User Based Income");
+            addUnit(pieChartData, Unit.$);
         }
 
-        class data {
-            String username;
-            Float total;
-
-            @Override
-            public String toString() {
-                return username + ": " + total;
-            }
-        }
-    }
-
-    class bookBasedChart extends PieChart {
-
-        public bookBasedChart(ArrayList<Order> orders) {
-            ArrayList<data> filteredBooks = new ArrayList<>();
-            ArrayList<BookOrder> allBooks = new ArrayList<>();
+        private void groupByClientName(List<Order> orders, ObservableList<PieChart.Data> pieChartData){
             for (Order o : orders) {
                 boolean match = false;
-                for (Order d : orders) {
-                    allBooks.addAll(d.getBooksOrdered());
+                for (PieChart.Data d : pieChartData) {
+                    if (o.getClientName().equals(d.getName())) {
+                        d.setPieValue(d.getPieValue()+o.getTotal());
+                        match = true;
+                        break;
+                    }
                 }
-                for (BookOrder b : allBooks) {
-                    for (data d : filteredBooks) {
-                        if (b.getTitle().equals(d.title)) {
-                            d.total += o.getTotal();
+                if (!match)
+                    pieChartData.add(new PieChart.Data(o.getClientName(), o.getTotal()));
+            }
+            addUnit(pieChartData, Unit.$);
+        }
+
+        private void incomeGroupByBook(List<Order> orders, ObservableList<PieChart.Data> pieChartData){
+            class data {
+                String title;
+                String isbn;
+                float total;
+                data(String title, String isbn, float total){
+                    this.title=title;
+                    this.isbn=isbn;
+                    this.total=total;
+                }
+            }
+            List<data> data_ = new ArrayList<>();
+
+            for (Order o : orders) {
+                for (BookOrder b : o.getBooksOrdered()) {
+                    boolean match = false;
+                    for (data d : data_) {
+                        if (b.getBookISBN().equals(d.isbn)) {
+                            d.total += b.getTotalPrice();
                             match = true;
                             break;
                         }
                     }
-
-                    if (!match) {
-                        data data_ = new data();
-                        data_.title = b.getTitle();
-                        data_.total = b.getTotalPrice();
-                        filteredBooks.add(data_);
-                    }
+                    if (!match)
+                        data_.add(new data(b.getTitle(), b.getBookISBN(), b.getTotalPrice()));
                 }
             }
 
-            System.out.println(filteredBooks);
-
-            ObservableList<Data> pieChartData = FXCollections.observableArrayList();
-
-            for (data d : filteredBooks) {
+            for (data d : data_)
                 pieChartData.add(new Data(d.title, d.total));
-            }
 
-            pieChartData.forEach(data ->
-                    data.nameProperty().bind(
-                            Bindings.concat(
-                                    data.getName(), " ", data.pieValueProperty(), " $"
-                            )
-                    )
-            );
-            super.setData(pieChartData);
-            super.setTitle("Book Based Income");
+            addUnit(pieChartData, Unit.$);
         }
 
-        class data {
-            String title;
-            Float total;
-
-            @Override
-            public String toString() {
-                return title + ": " + total;
+        private void unitsGroupByBook(List<Order> orders, ObservableList<PieChart.Data> pieChartData){
+            class data {
+                String title;
+                String isbn;
+                int quantity;
+                data(String title, String isbn, int quantity){
+                    this.title=title;
+                    this.isbn=isbn;
+                    this.quantity=quantity;
+                }
             }
-        }
-    }
+            List<data> data_ = new ArrayList<>();
 
-    class clientBasedChart extends PieChart {
-
-        public clientBasedChart(ArrayList<Order> orders) {
-            ArrayList<data> filteredOrders = new ArrayList<>();
             for (Order o : orders) {
-                boolean match = false;
-                for (data d : filteredOrders) {
-                    if (o.getClientName().equals(d.name)) {
-                        d.total += o.getTotal();
-                        match = true;
-                        break;
+                for (BookOrder b : o.getBooksOrdered()) {
+                    boolean match = false;
+                    for (data d : data_) {
+                        if (b.getBookISBN().equals(d.isbn)) {
+                            d.quantity += b.getQuantity();
+                            match = true;
+                            break;
+                        }
                     }
-                }
-                if (!match) {
-                    data data_ = new data();
-                    data_.name = o.getClientName();
-                    data_.total = o.getTotal();
-                    filteredOrders.add(data_);
+                    if (!match)
+                        data_.add(new data(b.getTitle(), b.getBookISBN(), b.getQuantity()));
                 }
             }
 
-            System.out.println(filteredOrders);
-
-            ObservableList<Data> pieChartData = FXCollections.observableArrayList();
-
-            for (data d : filteredOrders) {
-                pieChartData.add(new Data(d.name, d.total));
-            }
-
-            pieChartData.forEach(data ->
-                    data.nameProperty().bind(
-                            Bindings.concat(
-                                    data.getName(), " ", data.pieValueProperty(), " $"
-                            )
-                    )
-            );
-            super.setData(pieChartData);
-            super.setTitle("Client Based Income");
+            for (data d : data_)
+                pieChartData.add(new Data(d.title, d.quantity));
+            addUnit(pieChartData, Unit.pcs);
         }
 
-        class data {
-            String name;
-            Float total;
-
-            @Override
-            public String toString() {
-                return name + ": " + total;
-            }
-        }
     }
 }

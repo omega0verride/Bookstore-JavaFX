@@ -2,10 +2,12 @@ package application.bookstore.models;
 
 import application.bookstore.auxiliaries.CustomObjectOutputStream;
 import application.bookstore.auxiliaries.FileHandler;
+import application.bookstore.controllers.ControllerCommon;
 import javafx.collections.ObservableList;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.logging.Level;
 
 public abstract class BaseModel <V extends BaseModel> {
 
@@ -22,9 +24,9 @@ public abstract class BaseModel <V extends BaseModel> {
                 }
                 inputStream.close();
             } catch (FileNotFoundException ex){
-                System.out.println(String.format("File %s not found, the file will be created when data is entered.\n", file) + Arrays.toString(ex.getStackTrace()));
+                ControllerCommon.LOGGER.log(Level.INFO, String.format("File %s not found, the file will be created when data is entered.\n", file) + Arrays.toString(ex.getStackTrace()));
             } catch (EOFException eofException) {
-                System.out.printf("End of %s file reached!%n", file);
+                ControllerCommon.LOGGER.log(Level.INFO, String.format("End of %s file reached!", file));
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -46,8 +48,7 @@ public abstract class BaseModel <V extends BaseModel> {
             outputStream.writeObject((V) this);
             data.add((V) this);
         } catch (IOException e) {
-            // TODO: log
-            e.printStackTrace();
+            ControllerCommon.LOGGER.log(Level.INFO, "Could Not Save to File."+ Arrays.toString(e.getStackTrace()));
             return "Could Not Save to File. Please check Logs.";
         }
         return "1";
@@ -59,8 +60,7 @@ public abstract class BaseModel <V extends BaseModel> {
             FileHandler.overwriteCurrentListToFile(file, list);
         } catch (Exception e) {
             list.set(list.indexOf(((V) this)), (V) this);
-            // TODO: log
-            e.printStackTrace();
+            ControllerCommon.LOGGER.log(Level.INFO, "Could Not Save to File."+ Arrays.toString(e.getStackTrace()));
             return "Could Not Save to File. Please check Logs.";
         }
         return "1";
@@ -76,8 +76,7 @@ public abstract class BaseModel <V extends BaseModel> {
             FileHandler.overwriteCurrentListToFile(file, list);
         } catch (Exception e) {
             list.set(list.indexOf(((V) this)), old);
-            // TODO: log
-            e.printStackTrace();
+            ControllerCommon.LOGGER.log(Level.INFO, "Could Not Save to File."+ Arrays.toString(e.getStackTrace()));
             return "Could Not Save to File. Please check Logs.";
         }
         return "1";

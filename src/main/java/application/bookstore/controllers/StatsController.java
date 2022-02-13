@@ -9,5 +9,7 @@ public class StatsController {
         this.statsView = statsView;
     }
 
+    // this is meant to be used to get input from the user to generate stats
+    // i.e stats based on 2 time intervals
 
 }

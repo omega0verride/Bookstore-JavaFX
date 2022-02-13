@@ -14,8 +14,11 @@ import javafx.stage.Stage;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.*;
 
 public class ControllerCommon {
+
+    public static final Logger LOGGER = Logger.getLogger( ControllerCommon.class.getName() );
 
     public static void showSuccessMessage(Label l, String t) {
         l.setText(t);

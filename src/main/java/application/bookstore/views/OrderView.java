@@ -30,7 +30,7 @@ import java.util.ArrayList;
 public class OrderView extends View {
     private final BorderPane mainPane = new BorderPane();
 
-    private final Order order;
+    private Order order;
     private final Tab tab;
 
     private final TableView<BookOrder> tableView = new TableView<>();
@@ -221,6 +221,10 @@ public class OrderView extends View {
 
     public Order getOrder() {
         return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order=order;
     }
 
     public TableColumn<BookOrder, Integer> getNoCol() {

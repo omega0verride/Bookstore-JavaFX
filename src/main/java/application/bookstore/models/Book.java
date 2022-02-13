@@ -156,13 +156,8 @@ public class Book extends BaseModel<Book> implements Serializable, Cloneable {
         return quantity;
     }
 
-
-
     public void setQuantity(int quantity) {
         this.quantity = quantity;
-//        System.out.println(quantity);
-//        System.out.println("Forgot something here?, Book -> setQuantity()");
-//        updateInFile();
     }
 
 }

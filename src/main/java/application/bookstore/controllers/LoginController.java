@@ -9,6 +9,8 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 
+import java.util.logging.Level;
+
 public class LoginController {
     private final Stage primaryStage;
     private View nextView;
@@ -34,11 +36,9 @@ public class LoginController {
             User potentialUser = new User(username, password);
             if ((currentUser = User.getIfExists(potentialUser)) != null) {
                 view.setCurrentUser(currentUser);
-                // TODO: log
-                System.out.println("Logged in with user: " + currentUser);
+                ControllerCommon.LOGGER.log(Level.INFO, "Logged in with user: " + currentUser);
                 primaryStage.setResizable(true);
                 nextView = new MainView(primaryStage);
-                System.out.println(MainView.width);
                 primaryStage.setScene(new Scene(nextView.getView(), MainView.width, MainView.height));
                 primaryStage.centerOnScreen();
             } else

@@ -72,7 +72,7 @@ public class User extends BaseModel<User>  implements Serializable{
     public String toString() {
         return "\nUser{" +
                 "\n\t\"username\": " + getUsername() +
-                ",\n\t\"password\": " + getPassword() +
+                ",\n\t\"password\": " + "******" +
                 ",\n\t\"role\": " + getRole() +
                 "\n}";
     }

@@ -2,6 +2,7 @@ package application.bookstore.controllers;
 
 import application.bookstore.models.Book;
 import application.bookstore.models.BookOrder;
+import application.bookstore.models.Order;
 import application.bookstore.ui.PrintWindow;
 import application.bookstore.views.OrderView;
 import javafx.collections.FXCollections;
@@ -116,7 +117,6 @@ public class OrderController {
 
 
     private void removeFromOrder(BookOrder b){
-        orderView.getOrder().getBooksOrdered().remove(b);
         orderView.getExistingBooksView().getTableView().getItems().add(b.getBook());
         orderView.getTableView().getItems().remove(b);
         orderView.getTotalValueLabel().setText(((Float) orderView.getOrder().getTotal()).toString());
@@ -124,6 +124,7 @@ public class OrderController {
 
     private void clearOrder() {
         orderView.getOrder().getBooksOrdered().clear();
+        orderView.getNameField().setText(""); // reset fields
         List<BookOrder> elementsToRemove = List.copyOf(orderView.getTableView().getItems());
         for (BookOrder b : elementsToRemove) {
             removeFromOrder(b);
@@ -131,7 +132,7 @@ public class OrderController {
     }
 
     public void resetFields() {
-        orderView.getNameField().setText("");
-        clearOrder();
+        orderView.setOrder(new Order()); // create a new order
+        clearOrder(); // clear previous order
     }
 }

@@ -1,6 +1,7 @@
 package application.bookstore.models;
 
 import application.bookstore.auxiliaries.TableGenerator;
+import application.bookstore.controllers.ControllerCommon;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class Order extends BaseModel<Order> implements Serializable {
     @Serial
@@ -68,8 +70,7 @@ public class Order extends BaseModel<Order> implements Serializable {
             p.println(this);
             p.close();
         } catch (Exception ex) {
-            System.out.println(Arrays.toString(ex.getStackTrace()));
-            //TODO: log
+            ControllerCommon.LOGGER.log(Level.INFO, Arrays.toString(ex.getStackTrace()));
         }
     }
 

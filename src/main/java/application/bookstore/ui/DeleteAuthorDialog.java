@@ -46,7 +46,6 @@ public class DeleteAuthorDialog extends Alert {
     }
 
     private void deleteAuthors(AuthorView view, boolean deleteBooks_){
-        System.out.println(deleteBooks_);
             List<Author> itemsToDelete = List.copyOf(view.getTableView().getSelectionModel().getSelectedItems());
             for (Author a : itemsToDelete) {
                 String res = a.deleteFromFile();
