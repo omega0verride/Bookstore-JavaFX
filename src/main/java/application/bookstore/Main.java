@@ -31,7 +31,7 @@ public class Main extends Application {
         }
 
         loadData();
-        createAdminAndData();
+//        createAdminAndData();
         launch(args);
     }
 
