@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public class User extends BaseModel<User>  implements Serializable{
     @Serial
     private static final long serialVersionUID = 1234567L;
-    public static final String FILE_PATH = "data/users.ser";
+    public static final String FILE_PATH = BaseModel.FOLDER_PATH+"users.ser";
     private static final File DATA_FILE = new File(FILE_PATH);
 
     private static final ObservableList<User> users = FXCollections.observableArrayList();

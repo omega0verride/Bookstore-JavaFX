@@ -8,7 +8,7 @@ import java.io.*;
 public class Book extends BaseModel<Book> implements Serializable, Cloneable {
     @Serial
     private static final long serialVersionUID = 1234567L;
-    private static final String FILE_PATH = "data/books.ser";
+    private static final String FILE_PATH = BaseModel.FOLDER_PATH+"books.ser";
     private static final File DATA_FILE = new File(FILE_PATH);
 
     private static final ObservableList<Book> books = FXCollections.observableArrayList();
