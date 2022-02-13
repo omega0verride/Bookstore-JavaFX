@@ -1,23 +1,35 @@
 package application.bookstore.models;
-
-import application.bookstore.auxiliaries.FileHandler;
-
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 
-public class Author extends BaseModel implements Serializable, Cloneable {
-    public static final String FILE_PATH = "data/authors.ser";
-    public static final File DATA_FILE = new File(FILE_PATH);
+public class Author extends BaseModel<Author> implements Serializable, Cloneable {
     @Serial
     private static final long serialVersionUID = 1234567L;
-    private static final ArrayList<Author> authors = new ArrayList<>();
+    public static final String FILE_PATH = "data/authors.ser";
+    public static final File DATA_FILE = new File(FILE_PATH);
+
+    private static final ObservableList<Author> authors = FXCollections.observableArrayList();
+
     private String firstName;
     private String lastName;
 
     public Author(String firstName, String lastName) {
         setFirstName(firstName);
         setLastName(lastName);
+    }
+
+    public static ObservableList<Author> getAuthors() {
+        return getData(DATA_FILE, authors);
+    }
+
+    public boolean exists() {
+        for (Author a : authors) {
+            if (a.getFullName().equals(this.getFullName()))
+                return true;
+        }
+        return false;
     }
 
     public static ArrayList<Author> getSearchResults(String searchText) {
@@ -32,41 +44,11 @@ public class Author extends BaseModel implements Serializable, Cloneable {
         return searchResults;
     }
 
-    public static ArrayList<Author> getAuthors() {
-        if (authors.size() == 0) {
-            try {
-                ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(FILE_PATH));
-                while (true) {
-                    Author temp = (Author) inputStream.readObject();
-                    if (temp != null)
-                        authors.add(temp);
-                    else
-                        break;
-                }
-                inputStream.close();
-            } catch (EOFException eofException) {
-                System.out.println("End of authors file reached!");
-                // TODO: log
-            } catch (IOException | ClassNotFoundException ex) {
-                ex.printStackTrace();
-                // TODO: log
-            }
-        }
-        return authors;
-    }
-
     @Override
     public Author clone() {
         return new Author(firstName, lastName);
     }
 
-    public boolean exists() {
-        for (Author a : authors) {
-            if (a.getFullName().equals(this.getFullName()))
-                return true;
-        }
-        return false;
-    }
 
     @Override
     public String toString() {
@@ -82,6 +64,7 @@ public class Author extends BaseModel implements Serializable, Cloneable {
                 "\n}";
     }
 
+    @Override
     public String isValid() {
         // firstname and last name must contain only letters
         if (!getFirstName().matches("[a-zA-Z]{1,30}"))
@@ -92,36 +75,21 @@ public class Author extends BaseModel implements Serializable, Cloneable {
         return "1";
     }
 
+    @Override
     public String saveInFile() {
-        String saved = super.save(Author.DATA_FILE);
-        if (saved.matches("1"))
-            authors.add(this);
-        return saved;
+        if (exists())
+            return "Author with this Full Name exists.";
+        return save(DATA_FILE, authors);
     }
 
     @Override
-    public boolean updateFile() {
-        try {
-            FileHandler.overwriteCurrentListToFile(DATA_FILE, authors);
-        } catch (Exception e) {
-            System.out.println(Arrays.toString(e.getStackTrace()));
-            return false;
-        }
-        return true;
+    public String deleteFromFile() {
+        return delete(DATA_FILE, authors);
     }
 
     @Override
-    public boolean deleteFromFile() {
-        // TODO: handle books
-        authors.remove(this);
-        try {
-            FileHandler.overwriteCurrentListToFile(DATA_FILE, authors);
-        } catch (Exception e) {
-            authors.add(this);
-            System.out.println(Arrays.toString(e.getStackTrace()));
-            return false;
-        }
-        return true;
+    public String  updateInFile(Author old) {
+        return update(DATA_FILE, authors, old);
     }
 
 

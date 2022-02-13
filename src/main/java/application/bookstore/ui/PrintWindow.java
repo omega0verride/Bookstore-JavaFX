@@ -47,7 +47,7 @@ public class PrintWindow {
         v.getChildren().addAll(dataLabel, h);
         v.setSpacing(25);
 
-        secondScene = new Scene(v, 350, 350);
+        secondScene = new Scene(v, 500, 350);
 
         newWindow = new Stage();
         newWindow.setTitle("Print Order");

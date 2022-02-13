@@ -8,6 +8,9 @@ import application.bookstore.models.Order;
 import application.bookstore.ui.ClearButton;
 import application.bookstore.ui.CreateButton;
 import application.bookstore.ui.ProfileButton;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -17,10 +20,12 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
-import javafx.util.converter.FloatStringConverter;
+import javafx.util.Callback;
 import javafx.util.converter.IntegerStringConverter;
+
+import java.util.ArrayList;
 
 public class OrderView extends View {
     private final BorderPane mainPane = new BorderPane();
@@ -35,8 +40,8 @@ public class OrderView extends View {
     private final TableColumn<BookOrder, Float> priceCol = new TableColumn<>("Unit Price");
     private final TableColumn<BookOrder, Float> totalPriceCol = new TableColumn<>("Total Price");
     private final TableColumn<BookOrder, String> authorCol = new TableColumn<>("Author");
-    private final TableColumn<Book, Integer> selectorCol = new TableColumn<>("");
-    private final TableColumn<BookOrder, Integer> selectorCol_ = new TableColumn<>("");
+    private final TableColumn selectorCol = new TableColumn<>("");
+    private final TableColumn selectorCol_ = new TableColumn<>("");
 
     private final HBox formPane = new HBox();
     private final TextField nameField = new TextField();
@@ -44,6 +49,7 @@ public class OrderView extends View {
     private final Button clearBtn = new ClearButton();
     private final Label totalValueLabel = new Label("0");
     private final Label totalLabel = new Label("Total: ", totalValueLabel);
+
     private final Label messageLabel = new Label("");
 
     private final BookView existingBooksView;
@@ -59,7 +65,7 @@ public class OrderView extends View {
         this.advanced = advanced;
 
         order = new Order();
-        existingBooksView = new BookView(advanced);
+        existingBooksView = new BookView(advanced, true);
         existingBooksViewPane = existingBooksView.getView();
         new OrderController(this, mainStage);
     }
@@ -69,7 +75,7 @@ public class OrderView extends View {
         setForm();
         setTableView();
 
-        ControllerCommon.showSuccessMessage(messageLabel, "Double click on a row to add/remove it.");
+        ControllerCommon.showSuccessMessage(messageLabel, "Click on the checkbox add/remove a book.");
 
         VBox tables = new VBox();
         tables.setAlignment(Pos.CENTER);
@@ -78,6 +84,7 @@ public class OrderView extends View {
         tables.getChildren().add(existingBooksViewPane);
         tables.getChildren().add(tableView);
 
+        messageLabel.setTextAlignment(TextAlignment.CENTER);
         VBox controls = new VBox();
         controls.setAlignment(Pos.CENTER);
         controls.setSpacing(5);
@@ -108,9 +115,68 @@ public class OrderView extends View {
         selectorCol_.setGraphic(new ImageView(String.valueOf(ProfileButton.class.getResource("/images/selector.png"))));
         selectorCol_.setMinWidth(30);
         selectorCol_.setMaxWidth(30);
-        existingBooksView.getTableView().getColumns().add(0, selectorCol);
 
-        tableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+
+        selectorCol.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<BookOrder, CheckBox>, ObservableValue<CheckBox>>() {
+            @Override
+            public ObservableValue<CheckBox> call(TableColumn.CellDataFeatures<BookOrder, CheckBox> val) {
+                BookOrder bookOrder = val.getValue();
+                CheckBox checkBox = new CheckBox();
+                checkBox.selectedProperty().setValue(true);
+                checkBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+                    public void changed(ObservableValue<? extends Boolean> ov,
+                                        Boolean old_val, Boolean new_val) {
+                        if (!new_val){
+                            existingBooksView.getTableView().getItems().add(bookOrder.getBook());
+                            tableView.getItems().remove(bookOrder);
+                            order.getBooksOrdered().remove(bookOrder);
+                        }
+                    }
+                });
+                return new SimpleObjectProperty<CheckBox>(checkBox);
+            }
+        });
+
+
+        selectorCol_.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<Book, CheckBox>, ObservableValue<CheckBox>>() {
+            @Override
+            public ObservableValue<CheckBox> call(TableColumn.CellDataFeatures<Book, CheckBox> val) {
+                CheckBox checkBox = new CheckBox();
+                Book b = val.getValue();
+                BookOrder bookOrder = new BookOrder(1, val.getValue());
+                checkBox.selectedProperty().setValue(false);
+                checkBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+                    public void changed(ObservableValue<? extends Boolean> ov,
+                                        Boolean old_val, Boolean new_val) {
+                        if (new_val){
+                            bookOrder.setQuantity(1);
+                            if (bookOrder.getQuantity() > bookOrder.getBook().getQuantity()){
+                                ControllerCommon.showErrorMessage(getResultLabel(), "There are not enough books in stock! Currently there are " + b.getQuantity() + " available.");
+                                checkBox.selectedProperty().setValue(false);
+                            }
+                            else {
+                                order.getBooksOrdered().add(bookOrder);
+                                tableView.getItems().add(bookOrder);
+                                existingBooksView.getTableView().getItems().remove(b);
+                                getTotalValueLabel().setText(((Float) getOrder().getTotal()).toString());
+                            }
+                        }
+                    }
+                });
+                return new SimpleObjectProperty<CheckBox>(checkBox);
+            }
+        });
+
+
+        selectorCol.setSortable(false);
+        selectorCol_.setSortable(false);
+
+        // we save a copy to not affect other orders or the original books
+        ArrayList<Book> copyOfBooks =  new ArrayList<>(Book.getBooks());
+        existingBooksView.getTableView().setItems(FXCollections.observableArrayList(copyOfBooks));
+        existingBooksView.getTableView().getColumns().add(0, selectorCol_);
+
+        existingBooksView.getTableView().getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         tableView.setEditable(true);
         tableView.setMinHeight(200);
         tableView.setItems(FXCollections.observableArrayList(order.getBooksOrdered()));
@@ -141,7 +207,7 @@ public class OrderView extends View {
         authorCol.setCellValueFactory(
                 new PropertyValueFactory<>("author")
         );
-        tableView.getColumns().addAll(selectorCol_, noCol, isbnCol, titleCol, priceCol, totalPriceCol, authorCol);
+        tableView.getColumns().addAll(selectorCol, noCol, isbnCol, titleCol, priceCol, totalPriceCol, authorCol);
     }
 
 
@@ -161,32 +227,8 @@ public class OrderView extends View {
         return noCol;
     }
 
-    public TableColumn<BookOrder, String> getIsbnCol() {
-        return isbnCol;
-    }
-
-    public TableColumn<BookOrder, String> getTitleCol() {
-        return titleCol;
-    }
-
-    public TableColumn<BookOrder, Float> getPriceCol() {
-        return priceCol;
-    }
-
-    public TableColumn<BookOrder, Float> getTotalPriceCol() {
-        return totalPriceCol;
-    }
-
-    public TableColumn<BookOrder, String> getAuthorCol() {
-        return authorCol;
-    }
-
     public Label getResultLabel() {
         return messageLabel;
-    }
-
-    public Label getTotalLabel() {
-        return totalLabel;
     }
 
     public BookView getExistingBooksView() {
@@ -195,14 +237,6 @@ public class OrderView extends View {
 
     public Button getClearBtn() {
         return clearBtn;
-    }
-
-    public Parent getExistingBooksViewPane() {
-        return existingBooksViewPane;
-    }
-
-    public Tab getTab() {
-        return tab;
     }
 
 
@@ -214,13 +248,6 @@ public class OrderView extends View {
         return tableView;
     }
 
-    public TableColumn<Book, Integer> getSelectorCol() {
-        return selectorCol;
-    }
-
-    public TableColumn<BookOrder, Integer> getSelectorCol_() {
-        return selectorCol_;
-    }
 
     public Label getMessageLabel() {
         return messageLabel;

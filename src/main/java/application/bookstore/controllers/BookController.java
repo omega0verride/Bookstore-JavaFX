@@ -2,83 +2,81 @@ package application.bookstore.controllers;
 
 import application.bookstore.models.Author;
 import application.bookstore.models.Book;
+import application.bookstore.models.User;
 import application.bookstore.views.BookView;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class BookController {
-    private final BookView bookView;
+    private final BookView view;
 
-    public BookController(BookView bookView) {
-        this.bookView = bookView;
-        setSaveListener();
-        setDeleteListener();
+    public BookController(BookView bookView, boolean customSearch) {
+        this.view = bookView;
+
+        setComboBoxListener();
+        if (!customSearch)
+            setSearchListener();
+
         if (bookView.isAllowEdit()) {
+            setSaveListener();
+            setDeleteListener();
             setEditListener();
             bookView.getTableView().setEditable(true);
         }
-        setComboBoxListener();
-        setSearchListener();
     }
 
     private void setSearchListener() {
-        bookView.getSearchView().getClearBtn().setOnAction(e -> {
-            bookView.getSearchView().getSearchField().setText("");
-            bookView.getTableView().setItems(FXCollections.observableArrayList(Book.getBooks()));
+        view.getSearchView().getClearBtn().setOnAction(e -> {
+            view.getSearchView().getSearchField().setText("");
+            view.getTableView().setItems(FXCollections.observableArrayList(Book.getBooks()));
         });
-        bookView.getSearchView().getSearchBtn().setOnAction(e -> {
-            String searchText = bookView.getSearchView().getSearchField().getText();
-            ArrayList<Book> searchResults = Book.getSearchResults(searchText);
-            bookView.getTableView().setItems(FXCollections.observableArrayList(searchResults));
+        view.getSearchView().getSearchBtn().setOnAction(e -> {
+            String searchText = view.getSearchView().getSearchField().getText();
+            ObservableList<Book> searchResults = Book.getSearchResults(searchText);
+            view.getTableView().setItems(searchResults);
         });
     }
 
     private void setComboBoxListener() {
-        bookView.getAuthorsComboBox().setOnMouseClicked(e -> {
-
-            bookView.getAuthorsComboBox().getItems().setAll(Author.getAuthors());
+        view.getAuthorsComboBox().setOnMouseClicked(e -> {
+            view.getAuthorsComboBox().getItems().setAll(Author.getAuthors());
             // set default selected the first author
             if (!Author.getAuthors().isEmpty())
-                bookView.getAuthorsComboBox().setValue(Author.getAuthors().get(0));
+                view.getAuthorsComboBox().setValue(Author.getAuthors().get(0));
         });
     }
 
     private void setSaveListener() {
-        bookView.getSaveBtn().setOnAction(e -> {
-            String isbn = bookView.getIsbnField().getText();
-            String title = bookView.getTitleField().getText();
-            int quantity = Integer.parseInt(bookView.getQuantityField().getText());
-            float purchasedPrice = Float.parseFloat(bookView.getPurchasedPriceField().getText());
-            float sellingPrice = Float.parseFloat(bookView.getSellingPriceField().getText());
-            Author author = bookView.getAuthorsComboBox().getValue();
+        view.getSaveBtn().setOnAction(e -> {
+            String isbn = view.getIsbnField().getText();
+            String title = view.getTitleField().getText();
+            int quantity = Integer.parseInt(view.getQuantityField().getText());
+            float purchasedPrice = Float.parseFloat(view.getPurchasedPriceField().getText());
+            float sellingPrice = Float.parseFloat(view.getSellingPriceField().getText());
+            Author author = view.getAuthorsComboBox().getValue();
             Book book = new Book(isbn, title, quantity, purchasedPrice, sellingPrice, author);
 
-            if (!book.exists()) {
-                String saveResult = book.saveInFile();
-                if (saveResult.matches("1")) {
-                    bookView.getTableView().getItems().add(book);
-                    ControllerCommon.showSuccessMessage(bookView.getResultLabel(), "Book created successfully");
-                    resetFields();
-                } else {
-                    ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Book creation failed!\n" + saveResult);
-                }
-            } else {
-                ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Book with this ISBN exists.");
-            }
+            String res = book.saveInFile();
+            if (res.matches("1")) {
+                ControllerCommon.showSuccessMessage(view.getMessageLabel(), "Book created successfully!");
+                resetFields();
+            } else
+                ControllerCommon.showErrorMessage(view.getMessageLabel(), "Book creation failed!\n" + res);
         });
     }
 
     private void setDeleteListener() {
-        bookView.getDeleteBtn().setOnAction(e -> {
-            List<Book> itemsToDelete = List.copyOf(bookView.getTableView().getSelectionModel().getSelectedItems());
+        view.getDeleteBtn().setOnAction(e -> {
+            List<Book> itemsToDelete = List.copyOf(view.getTableView().getSelectionModel().getSelectedItems());
             for (Book b : itemsToDelete) {
-                if (b.deleteFromFile()) {
-                    bookView.getTableView().getItems().remove(b);
-                    ControllerCommon.showSuccessMessage(bookView.getResultLabel(), "Book removed successfully");
+                String res = b.deleteFromFile();
+                if (res.matches("1")) {
+                    ControllerCommon.showSuccessMessage(view.getMessageLabel(), "Book removed successfully");
                 } else {
-                    ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Book deletion failed");
+                    ControllerCommon.showErrorMessage(view.getMessageLabel(), "Book deletion failed\n"+res);
                     break;
                 }
             }
@@ -86,79 +84,76 @@ public class BookController {
     }
 
     private void setEditListener() {
-        bookView.getIsbnCol().setOnEditCommit(e -> {
+        view.getIsbnCol().setOnEditCommit(e -> {
             Book bookToEdit = e.getRowValue();
-            String oldVal = bookToEdit.getIsbn();
-            bookToEdit.setIsbn(e.getNewValue());
-            if (bookToEdit.isValid().matches("1")) {
-                bookToEdit.updateFile();
-            } else {
-                ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Edit value invalid!\n" + bookToEdit.isValid());
-                bookToEdit.setIsbn(oldVal);
-                bookView.getTableView().getItems().set(bookView.getTableView().getItems().indexOf(bookToEdit), bookToEdit);
+            Book editedBook = bookToEdit.clone();
+            editedBook.setIsbn(e.getNewValue());
+            if (!editedBook.getIsbn().equals(bookToEdit.getIsbn())) {
+                if (editedBook.exists()) {
+                    Book.getBooks().set(Book.getBooks().indexOf(bookToEdit), bookToEdit);
+                    ControllerCommon.showErrorMessage(view.getMessageLabel(), "Book with this ISBN Exists!");
+                } else {
+                    String res = editedBook.updateInFile(bookToEdit);
+                    if (res.matches("1"))
+                        ControllerCommon.showSuccessMessage(view.getMessageLabel(), "Edit Successful!");
+                    else
+                        ControllerCommon.showErrorMessage(view.getMessageLabel(), "Edit value invalid!\n" + res);
+                }
             }
         });
 
-        bookView.getTitleCol().setOnEditCommit(e -> {
+        view.getTitleCol().setOnEditCommit(e -> {
             Book bookToEdit = e.getRowValue();
-            String oldVal = bookToEdit.getTitle();
-            bookToEdit.setTitle(e.getNewValue());
-            if (bookToEdit.isValid().matches("1")) {
-                bookToEdit.updateFile();
-            } else {
-                ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Edit value invalid!\n" + bookToEdit.isValid());
-                bookToEdit.setTitle(oldVal);
-                bookView.getTableView().getItems().set(bookView.getTableView().getItems().indexOf(bookToEdit), bookToEdit);
-            }
+            Book editedBook = bookToEdit.clone();
+            editedBook.setTitle(e.getNewValue());
+            String res = editedBook.updateInFile(bookToEdit);
+            if (res.matches("1"))
+                ControllerCommon.showSuccessMessage(view.getMessageLabel(), "Edit Successful!");
+            else
+                ControllerCommon.showErrorMessage(view.getMessageLabel(), "Edit value invalid!\n" + res);
         });
 
-        bookView.getQuantityCol().setOnEditCommit(e -> {
+        view.getQuantityCol().setOnEditCommit(e -> {
             Book bookToEdit = e.getRowValue();
-            int oldVal = bookToEdit.getQuantity();
-            bookToEdit.setQuantity(e.getNewValue());
-            if (bookToEdit.isValid().matches("1")) {
-                bookToEdit.updateFile();
-            } else {
-                ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Edit value invalid!\n" + bookToEdit.isValid());
-                bookToEdit.setQuantity(oldVal);
-                bookView.getTableView().getItems().set(bookView.getTableView().getItems().indexOf(bookToEdit), bookToEdit);
-            }
+            Book editedBook = bookToEdit.clone();
+            editedBook.setQuantity(e.getNewValue());
+            String res = editedBook.updateInFile(bookToEdit);
+            if (res.matches("1"))
+                ControllerCommon.showSuccessMessage(view.getMessageLabel(), "Edit Successful!");
+            else
+                ControllerCommon.showErrorMessage(view.getMessageLabel(), "Edit value invalid!\n" + res);
         });
 
-        bookView.getPurchasedPriceCol().setOnEditCommit(e -> {
+        view.getPurchasedPriceCol().setOnEditCommit(e -> {
             Book bookToEdit = e.getRowValue();
-            float oldVal = bookToEdit.getPurchasedPrice();
-            bookToEdit.setPurchasedPrice(e.getNewValue());
-            if (bookToEdit.isValid().matches("1")) {
-                bookToEdit.updateFile();
-            } else {
-                ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Edit value invalid!\n" + bookToEdit.isValid());
-                bookToEdit.setPurchasedPrice(oldVal);
-                bookView.getTableView().getItems().set(bookView.getTableView().getItems().indexOf(bookToEdit), bookToEdit);
-            }
+            Book editedBook = bookToEdit.clone();
+            editedBook.setPurchasedPrice(e.getNewValue());
+            String res = editedBook.updateInFile(bookToEdit);
+            if (res.matches("1"))
+                ControllerCommon.showSuccessMessage(view.getMessageLabel(), "Edit Successful!");
+            else
+                ControllerCommon.showErrorMessage(view.getMessageLabel(), "Edit value invalid!\n" + res);
         });
 
-        bookView.getSellingPriceCol().setOnEditCommit(e -> {
+        view.getSellingPriceCol().setOnEditCommit(e -> {
             Book bookToEdit = e.getRowValue();
-            float oldVal = bookToEdit.getSellingPrice();
-            bookToEdit.setSellingPrice(e.getNewValue());
-            if (bookToEdit.isValid().matches("1")) {
-                bookToEdit.updateFile();
-            } else {
-                ControllerCommon.showErrorMessage(bookView.getResultLabel(), "Edit value invalid!\n" + bookToEdit.isValid());
-                bookToEdit.setSellingPrice(oldVal);
-                bookView.getTableView().getItems().set(bookView.getTableView().getItems().indexOf(bookToEdit), bookToEdit);
-            }
+            Book editedBook = bookToEdit.clone();
+            editedBook.setSellingPrice(e.getNewValue());
+            String res = editedBook.updateInFile(bookToEdit);
+            if (res.matches("1"))
+                ControllerCommon.showSuccessMessage(view.getMessageLabel(), "Edit Successful!");
+            else
+                ControllerCommon.showErrorMessage(view.getMessageLabel(), "Edit value invalid!\n" + res);
         });
 
 
     }
 
     private void resetFields() {
-        bookView.getIsbnField().setText("");
-        bookView.getTitleField().setText("");
-        bookView.getPurchasedPriceField().setText("");
-        bookView.getSellingPriceField().setText("");
-        bookView.getQuantityField().setText("");
+        view.getIsbnField().setText("");
+        view.getTitleField().setText("");
+        view.getPurchasedPriceField().setText("");
+        view.getSellingPriceField().setText("");
+        view.getQuantityField().setText("");
     }
 }

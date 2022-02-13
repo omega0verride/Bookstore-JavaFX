@@ -1,8 +1,0 @@
-Order: Order_2022_02_08_21_23_11
-Date: 2022/02/08 21:23:11
-Client: b
-Books Ordered: 
-2pcs   test2_               Unit: 109.00 Total: 218.00
-
------------------------
-Total: 218.00

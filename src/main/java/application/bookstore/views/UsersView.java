@@ -5,7 +5,6 @@ import application.bookstore.models.Role;
 import application.bookstore.models.User;
 import application.bookstore.ui.CreateButton;
 import application.bookstore.ui.DeleteButton;
-import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -16,6 +15,7 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 
 public class UsersView extends View {
     private final BorderPane mainPane = new BorderPane();
@@ -45,12 +45,12 @@ public class UsersView extends View {
     @Override
     public Parent getView() {
         // user controls
+        messageLabel.setTextAlignment(TextAlignment.CENTER);
         VBox controls = new VBox();
         controls.setAlignment(Pos.CENTER);
         controls.setSpacing(5);
         controls.getChildren().addAll(formPane, messageLabel);
         //
-
         mainPane.setTop(searchView.getSearchPane());
         mainPane.setCenter(tableView);
         mainPane.setBottom(controls);
@@ -74,7 +74,8 @@ public class UsersView extends View {
     private void setTableView() {
         tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         tableView.setEditable(true);
-        tableView.setItems(FXCollections.observableArrayList(User.getUsers()));
+        tableView.setItems(User.getUsers());
+
         usernameCol.setCellValueFactory(
                 new PropertyValueFactory<>("username")
         );
@@ -83,9 +84,9 @@ public class UsersView extends View {
                 new PropertyValueFactory<>("password")
         );
         passwordCol.setCellFactory(TextFieldTableCell.forTableColumn());
-
         roleCol.setCellValueFactory(new PropertyValueFactory<>("role"));
         roleCol.setCellFactory(ComboBoxTableCell.forTableColumn(Role.values()));
+
         tableView.getColumns().addAll(usernameCol, passwordCol, roleCol);
     }
 

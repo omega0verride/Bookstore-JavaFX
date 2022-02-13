@@ -19,14 +19,15 @@ import javafx.stage.Stage;
 
 
 public class SalesView extends View {
-    private static final PrintButton printButton = new PrintButton();
+    private static final PrintButton printButton = new PrintButton("View/Print");
     private final BorderPane mainPane = new BorderPane();
     private final SearchView searchView = new SearchView("Search for an order");
     private final TableView<Order> tableView = new TableView<>();
     private final TableColumn<Order, String> clientNameCol = new TableColumn<>("Client Name");
     private final TableColumn<Order, String> usernameCol = new TableColumn<>("Username");
-    private final TableColumn<Order, String> orderIDCol = new TableColumn<>("Order ID");
     private final TableColumn<Order, Float> totalPriceCol = new TableColumn<>("Total");
+    private final TableColumn<Order, String> dateCol = new TableColumn<>("Date");
+    private final TableColumn<Order, String> orderIDCol = new TableColumn<>("Order ID");
 
     public SalesView(Stage mainStage) {
         setTableView();
@@ -38,19 +39,22 @@ public class SalesView extends View {
         tableView.setMinHeight(200);
         tableView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         tableView.setEditable(false);
-        tableView.setItems(FXCollections.observableArrayList(Order.getOrders()));
+        tableView.setItems(Order.getOrders());
         clientNameCol.setCellValueFactory(
                 new PropertyValueFactory<>("clientName")
         );
         usernameCol.setCellValueFactory(
                 new PropertyValueFactory<>("username")
         );
+        dateCol.setCellValueFactory(
+                new PropertyValueFactory<>("date")
+        );
         orderIDCol.setCellValueFactory(
                 new PropertyValueFactory<>("orderID")
         );
         totalPriceCol.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue().getTotal()));
 
-        tableView.getColumns().addAll(clientNameCol, usernameCol, totalPriceCol, orderIDCol);
+        tableView.getColumns().addAll(clientNameCol, usernameCol, totalPriceCol, dateCol, orderIDCol);
     }
 
 

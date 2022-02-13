@@ -1,32 +1,45 @@
 package application.bookstore.models;
 
-import application.bookstore.auxiliaries.FileHandler;
+import application.bookstore.auxiliaries.TableGenerator;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
-public class Order extends BaseModel implements Serializable {
-    public static final String FILE_PATH = "data/orders.ser";
-    public static final File DATA_FILE = new File(FILE_PATH);
+public class Order extends BaseModel<Order> implements Serializable {
     @Serial
     private static final long serialVersionUID = 1234567L;
-    private static final ArrayList<Order> orders = new ArrayList<>();
+    public static final String FILE_PATH = "data/orders.ser";
+    public static final File DATA_FILE = new File(FILE_PATH);
 
-    private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+    private static final ObservableList<Order> orders = FXCollections.observableArrayList();
+
+    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+
+
     private static final DateTimeFormatter idFormatter = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm_ss");
 
+    private String orderID;
     private String clientName;
     private String username;
-    private String orderID;
-    private ArrayList<BookOrder> booksOrdered;
     private String date;
+    private ArrayList<BookOrder> booksOrdered;
 
 
     public Order() {
         booksOrdered = new ArrayList<>();
+        UUID uuid = UUID.randomUUID();
+        orderID="Order_"+uuid.toString().replaceAll("-", "_");
+    }
+
+    public static ObservableList<Order> getOrders() {
+        return getData(DATA_FILE, orders);
     }
 
     public static ArrayList<Order> getSearchResults(String searchText) {
@@ -41,53 +54,6 @@ public class Order extends BaseModel implements Serializable {
         return searchResults;
     }
 
-    public static ArrayList<Order> getOrders() {
-        if (orders.size() == 0) {
-            try {
-                ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(FILE_PATH));
-                while (true) {
-                    Order temp = (Order) inputStream.readObject();
-                    if (temp != null)
-                        orders.add(temp);
-                    else
-                        break;
-                }
-                inputStream.close();
-            } catch (EOFException eofException) {
-                System.out.println("End of orders file reached!");
-            } catch (IOException | ClassNotFoundException ex) {
-                ex.printStackTrace();
-            }
-        }
-        return orders;
-    }
-
-    public void completeOrder(String username, String clientName) {
-        setUsername(username);
-        setClientName(clientName);
-        LocalDateTime now = LocalDateTime.now();
-        setDate(dtf.format(now));
-        setOrderID("Order_" + idFormatter.format(now));
-
-        for (int i = 0; i < getBooksOrdered().size(); i++)
-            booksOrdered.set(i, booksOrdered.get(i).clone());// we need to clone them because the originals will be removed from the view and thus unreferenced
-    }
-
-    @Override
-    public String isValid() {
-        if (!clientName.matches("([a-zA-Z0-9_]{1,30}\\s*)+"))
-            return "Client Name must contain 1 to 30 lower/upper case letters numbers spaces or underscore.";
-        return "1";
-    }
-
-    @Override
-    public String toString() {
-        String s = "Order: " + orderID + "\nDate: " + date + "\nClient: " + clientName + "\nBooks Ordered: \n";
-        for (BookOrder b : booksOrdered)
-            s += b + "\n";
-        s += String.format("\n-----------------------\nTotal: %.2f", getTotal());
-        return s;
-    }
 
     public float getTotal() {
         float sum = 0;
@@ -107,52 +73,72 @@ public class Order extends BaseModel implements Serializable {
         }
     }
 
+    public void completeOrder(String username, String clientName) {
+        setUsername(username);
+        setClientName(clientName);
+        LocalDateTime now = LocalDateTime.now();
+        setDate(dateFormatter.format(now));
+        for (int i = 0; i < booksOrdered.size(); i++)
+            booksOrdered.set(i, booksOrdered.get(i).clone());// we need to clone them because the originals will be removed from the view and thus unreferenced
+    }
+
+    @Override
+    public String toString() {
+        String s = "Thank you from buying from our store!\n\nOrder: " + orderID + "\nDate: " + date + "\nClient: " + clientName + "\nBooks Ordered:";
+
+        TableGenerator tableGenerator = new TableGenerator();
+
+        List<String> headersList = new ArrayList<>();
+        headersList.add("Quantity");
+        headersList.add("Title");
+        headersList.add("Author");
+        headersList.add("Unit Price");
+        headersList.add("Total");
+
+        List<List<String>> rowsList = new ArrayList<>();
+
+        for (BookOrder b : booksOrdered) {
+            List<String> row = new ArrayList<>();
+            row.add(Integer.toString(b.getQuantity()));
+            row.add(b.getTitle());
+            row.add(b.getAuthor().getFullName());
+            row.add(Float.toString(b.getUnitPrice()));
+            row.add(Float.toString(b.getTotalPrice()));
+            rowsList.add(row);
+        }
+
+        s+=tableGenerator.generateTable(headersList, rowsList);
+        s += String.format("\n=======================\nTotal: %.2f", getTotal());
+
+        return s;
+    }
+
+    @Override
+    public String isValid() {
+        if (getBooksOrdered().size()==0)
+            return "Please choose at least 1 book.";
+        if (!clientName.matches("([a-zA-Z0-9_]{1,30}\\s*)+"))
+            return "Client Name must contain 1 to 30 lower/upper case letters numbers spaces or underscore.";
+        return "1";
+    }
+
+
     @Override
     public String saveInFile() {
-        if (orders.size()==0) //  load orders before tou add one
-            getOrders();
-        String saved = super.save(Order.DATA_FILE);
-        if (saved.matches("1"))
-            orders.add(this);
-        return saved;
+        return save(DATA_FILE, orders);
     }
 
+    // Deleting or modifying previous orders is not allowed."
+    @Override
+    public String deleteFromFile() {
+        return "Deleting or modifying previous orders is not allowed.";
+    }
 
     @Override
-    public boolean updateFile() {
-        if (orders.size()==0) //  load orders before tou add one
-            getOrders();
-        try {
-            FileHandler.overwriteCurrentListToFile(DATA_FILE, orders);
-        } catch (Exception e) {
-            System.out.println(Arrays.toString(e.getStackTrace()));
-            return false;
-        }
-        return true;
+    public String updateInFile(Order old) {
+        return "Deleting or modifying previous orders is not allowed.";
     }
 
-
-    @Override
-    public boolean deleteFromFile() {
-        orders.remove(this);
-        try {
-            FileHandler.overwriteCurrentListToFile(DATA_FILE, orders);
-        } catch (Exception e) {
-            orders.add(this);
-            System.out.println(Arrays.toString(e.getStackTrace()));
-            return false;
-        }
-        return true;
-    }
-
-
-    public ArrayList<BookOrder> getBooksOrdered() {
-        return booksOrdered;
-    }
-
-    public void setBooksOrdered(ArrayList<BookOrder> booksOrdered) {
-        this.booksOrdered = booksOrdered;
-    }
 
     public String getClientName() {
         return clientName;
@@ -185,5 +171,15 @@ public class Order extends BaseModel implements Serializable {
     public void setDate(String date) {
         this.date = date;
     }
+
+    public ArrayList<BookOrder> getBooksOrdered() {
+        return booksOrdered;
+    }
+
+    public void setBooksOrdered(ArrayList<BookOrder> booksOrdered) {
+        this.booksOrdered = booksOrdered;
+    }
+
+
 
 }

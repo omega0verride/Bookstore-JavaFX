@@ -1,8 +1,11 @@
 package application.bookstore.controllers;
 
+import application.bookstore.models.Book;
 import application.bookstore.models.BookOrder;
 import application.bookstore.ui.PrintWindow;
 import application.bookstore.views.OrderView;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.stage.Stage;
 
 import java.util.List;
@@ -15,52 +18,48 @@ public class OrderController {
         this.mainStage = mainStage;
         this.orderView = orderView;
 
-//        Order.getOrders();// get data from file
         setEditListener();
         setChooseBookListener();
         setRemoveBookListener();
         setCreateListener();
         setClearListener();
+        setSearchListener();
     }
+
+    private ObservableList<Book> uniqueBooks(ObservableList<Book> originalBooks){
+        ObservableList<Book> uBooks = FXCollections.observableArrayList();
+        for (Book b:originalBooks) {
+            boolean flag = false;
+            for (BookOrder bo : orderView.getTableView().getItems()) {
+                if (bo.getBook().getIsbn().matches(b.getIsbn())) {
+                    flag = true;
+                    break;
+                }
+            }
+            if (!flag)
+                uBooks.add(b);
+        }
+        return uBooks;
+    }
+
+    private void setSearchListener(){
+        orderView.getExistingBooksView().getSearchView().getClearBtn().setOnAction(e -> {
+            orderView.getExistingBooksView().getSearchView().getSearchField().setText("");
+            orderView.getExistingBooksView().getTableView().setItems(uniqueBooks(Book.getBooks()));
+        });
+        orderView.getExistingBooksView().getSearchView().getSearchBtn().setOnAction(e -> {
+            String searchText = orderView.getExistingBooksView().getSearchView().getSearchField().getText();
+            orderView.getExistingBooksView().getTableView().setItems(uniqueBooks(Book.getSearchResults(searchText)));
+        });
+    }
+
 
     private void setChooseBookListener() {
-        orderView.getExistingBooksView().getTableView().setOnMousePressed(e -> {
-            if (e.isPrimaryButtonDown() && e.getClickCount() == 2) {
-
-                BookOrder b = new BookOrder(1, orderView.getExistingBooksView().getTableView().getSelectionModel().getSelectedItem());
-                if (b.getQuantity() > b.getBook().getQuantity()) {
-                    ControllerCommon.showErrorMessage(orderView.getResultLabel(), "There are not enough books in stock! Currently there are " + b.getBook().getQuantity() + " available.");
-                    return;
-                }
-                orderView.getOrder().getBooksOrdered().add(b);
-                orderView.getExistingBooksView().getTableView().getItems().remove(orderView.getExistingBooksView().getTableView().getSelectionModel().getSelectedItem());
-                orderView.getTableView().getItems().add(b);
-                orderView.getTotalValueLabel().setText(((Float) orderView.getOrder().getTotal()).toString());
-            }
-        });
+        //implemented inside checkbox in OrderView
     }
-
-    private void removeFromOrder(BookOrder b){
-        orderView.getOrder().getBooksOrdered().remove(b);
-        orderView.getExistingBooksView().getTableView().getItems().add(b.getBook());
-        orderView.getTableView().getItems().remove(b);
-        orderView.getTotalValueLabel().setText(((Float) orderView.getOrder().getTotal()).toString());
-    }
-    private void clearOrder() {
-        List<BookOrder> elementsToRemove = List.copyOf(orderView.getTableView().getItems());
-        for (BookOrder b : elementsToRemove) {
-            removeFromOrder(b);
-        }
-    }
-
 
     private void setRemoveBookListener() {
-        orderView.getTableView().setOnMousePressed(e -> {
-            if (e.isPrimaryButtonDown() && e.getClickCount() == 2) {
-                BookOrder b = orderView.getTableView().getSelectionModel().getSelectedItem();
-                removeFromOrder(b);
-            }
-        });
+        //implemented inside checkbox in OrderView
     }
 
     private void setClearListener() {
@@ -75,6 +74,8 @@ public class OrderController {
             if (orderToEdit.getQuantity() > 0) {
                 if (orderToEdit.getQuantity() <= orderToEdit.getBook().getQuantity()) {
                     orderView.getTotalValueLabel().setText(((Float) orderView.getOrder().getTotal()).toString());
+                    int index=orderView.getTableView().getItems().indexOf(orderToEdit);
+                    orderView.getTableView().getItems().set(index, orderToEdit);
                 } else {
                     orderToEdit.setQuantity(oldVal);
                     orderView.getTableView().getItems().set(orderView.getTableView().getItems().indexOf(orderToEdit), orderToEdit);
@@ -83,7 +84,7 @@ public class OrderController {
             } else {
                 orderToEdit.setQuantity(oldVal);
                 orderView.getTableView().getItems().set(orderView.getTableView().getItems().indexOf(orderToEdit), orderToEdit);
-                ControllerCommon.showErrorMessage(orderView.getResultLabel(), "Edit value invalid!");
+                ControllerCommon.showErrorMessage(orderView.getResultLabel(), "Edit value invalid!\n"+"Quantity cannot be negative.");
             }
         });
 
@@ -94,9 +95,7 @@ public class OrderController {
             orderView.getOrder().completeOrder(orderView.getCurrentUser().getUsername(), orderView.getNameField().getText());
             String saveResult = orderView.getOrder().saveInFile();
             if (saveResult.matches("1")) {
-                for (BookOrder b : orderView.getOrder().getBooksOrdered()) {
-                    b.getBook().setQuantity(b.getBook().getQuantity() - b.getQuantity());
-                } // change stock quantity
+                changeStock();
                 new PrintWindow(mainStage, orderView, orderView.getOrder(), this);
                 ControllerCommon.showSuccessMessage(orderView.getResultLabel(), "Order created successfully");
             } else {
@@ -104,6 +103,31 @@ public class OrderController {
             }
 
         });
+    }
+
+    private void changeStock(){
+        for (BookOrder b : orderView.getTableView().getItems()) {
+            Book updatedBook = b.getBook().clone();
+            updatedBook.setQuantity(b.getBook().getQuantity() - b.getQuantity());
+            updatedBook.updateInFile(b.getBook());
+            b.setBook(updatedBook);
+        } // change stock quantity
+    }
+
+
+    private void removeFromOrder(BookOrder b){
+        orderView.getOrder().getBooksOrdered().remove(b);
+        orderView.getExistingBooksView().getTableView().getItems().add(b.getBook());
+        orderView.getTableView().getItems().remove(b);
+        orderView.getTotalValueLabel().setText(((Float) orderView.getOrder().getTotal()).toString());
+    }
+
+    private void clearOrder() {
+        orderView.getOrder().getBooksOrdered().clear();
+        List<BookOrder> elementsToRemove = List.copyOf(orderView.getTableView().getItems());
+        for (BookOrder b : elementsToRemove) {
+            removeFromOrder(b);
+        }
     }
 
     public void resetFields() {

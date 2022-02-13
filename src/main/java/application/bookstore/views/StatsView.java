@@ -16,6 +16,7 @@ import javafx.scene.layout.VBox;
 import java.util.ArrayList;
 
 public class StatsView extends View {
+
     private final VBox vBox = new VBox();
 
 
@@ -31,7 +32,7 @@ public class StatsView extends View {
         vBox.setSpacing(10);
         vBox.setAlignment(Pos.CENTER);
 
-        ArrayList<Order> orders = Order.getOrders();
+        ObservableList<Order> orders = Order.getOrders();
 
         System.out.println(orders);
 
@@ -39,8 +40,8 @@ public class StatsView extends View {
         ScrollPane p = new ScrollPane();
 
         vBox.getChildren().addAll(new usernameBasedChart(orders));
-        vBox.getChildren().addAll(new bookBasedChart(orders));
-        vBox.getChildren().addAll(new clientBasedChart(orders));
+//        vBox.getChildren().addAll(new bookBasedChart(orders));
+//        vBox.getChildren().addAll(new clientBasedChart(orders));
 
 //        HBox hBox = new HBox();
 //        hBox.setAlignment(Pos.CENTER);
@@ -53,8 +54,8 @@ public class StatsView extends View {
 
     class usernameBasedChart extends PieChart {
 
-        public usernameBasedChart(ArrayList<Order> orders) {
-            ArrayList<data> filteredOrders = new ArrayList<>();
+        public usernameBasedChart(ObservableList<Order> orders) {
+            ObservableList<data> filteredOrders = FXCollections.observableArrayList();
             for (Order o : orders) {
                 boolean match = false;
                 for (data d : filteredOrders) {
@@ -74,10 +75,10 @@ public class StatsView extends View {
 
             System.out.println(filteredOrders);
 
-            ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
+            ObservableList<Data> pieChartData = FXCollections.observableArrayList();
 
             for (data d : filteredOrders) {
-                pieChartData.add(new PieChart.Data(d.username, d.total));
+                pieChartData.add(new Data(d.username, d.total));
             }
 
             pieChartData.forEach(data ->
@@ -132,10 +133,10 @@ public class StatsView extends View {
 
             System.out.println(filteredBooks);
 
-            ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
+            ObservableList<Data> pieChartData = FXCollections.observableArrayList();
 
             for (data d : filteredBooks) {
-                pieChartData.add(new PieChart.Data(d.title, d.total));
+                pieChartData.add(new Data(d.title, d.total));
             }
 
             pieChartData.forEach(data ->
@@ -183,10 +184,10 @@ public class StatsView extends View {
 
             System.out.println(filteredOrders);
 
-            ObservableList<PieChart.Data> pieChartData = FXCollections.observableArrayList();
+            ObservableList<Data> pieChartData = FXCollections.observableArrayList();
 
             for (data d : filteredOrders) {
-                pieChartData.add(new PieChart.Data(d.name, d.total));
+                pieChartData.add(new Data(d.name, d.total));
             }
 
             pieChartData.forEach(data ->

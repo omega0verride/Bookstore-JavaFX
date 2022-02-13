@@ -28,7 +28,6 @@ public class MainView extends View {
 
     private final Menu salesMenu = new Menu("_Sales");
     private final MenuItem menuItemNewOrder = new MenuItem("New Order");
-    private final MenuItem menuItemNewAdvancedOrder = new MenuItem("New Advanced Order");
     private final MenuItem menuItemViewSales = new MenuItem("View Sales");
     private final MenuItem statsMenu = new MenuItem("View Sales Analysis");
 
@@ -63,7 +62,7 @@ public class MainView extends View {
                 controlMenu.getItems().addAll(manageUsers, menuItemSettings);
             }
             if (currentRole == Role.MANAGER || currentRole == Role.ADMIN) {
-                salesMenu.getItems().addAll(menuItemNewAdvancedOrder, menuItemViewSales, statsMenu);
+                salesMenu.getItems().addAll(menuItemViewSales, statsMenu);
             }
             controlMenu.getItems().add(menuItemLogout);
 
@@ -113,10 +112,6 @@ public class MainView extends View {
 
     public MenuItem getMenuItemNewOrder() {
         return menuItemNewOrder;
-    }
-
-    public MenuItem getMenuItemNewAdvancedOrder() {
-        return menuItemNewAdvancedOrder;
     }
 
     public Menu getControlMenu() {

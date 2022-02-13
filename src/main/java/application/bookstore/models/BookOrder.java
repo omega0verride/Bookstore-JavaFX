@@ -13,11 +13,11 @@ public class BookOrder implements Serializable, Cloneable {
     @Serial
     private static final long serialVersionUID = 1234567L;
 
-    private final transient Book book; // I keep the book only to have it easier to work between the OrderView tables
+    private transient Book book; // I keep the book only to have it easier to work between the OrderView tables
     // this will not be saved on the order file
 
     private int quantity; // note quantity here is not the stock but the number of this book being sold on this order
-    private String bookISBN; // some of the data is here mainly for analysis
+    private String bookISBN; // some data is here mainly for analysis
     private String title;
     private float unitPrice;
     private float purchasedPrice;
@@ -98,5 +98,9 @@ public class BookOrder implements Serializable, Cloneable {
 
     public void setPurchasedPrice(float purchasedPrice) {
         this.purchasedPrice = purchasedPrice;
+    }
+
+    public void setBook(Book book){
+        this.book=book;
     }
 }

@@ -1,5 +1,6 @@
 package application.bookstore.controllers;
 
+import application.bookstore.Main;
 import application.bookstore.models.User;
 import application.bookstore.views.LoginView;
 import application.bookstore.views.MainView;
@@ -37,6 +38,7 @@ public class LoginController {
                 System.out.println("Logged in with user: " + currentUser);
                 primaryStage.setResizable(true);
                 nextView = new MainView(primaryStage);
+                System.out.println(MainView.width);
                 primaryStage.setScene(new Scene(nextView.getView(), MainView.width, MainView.height));
                 primaryStage.centerOnScreen();
             } else

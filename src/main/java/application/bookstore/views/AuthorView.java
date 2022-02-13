@@ -5,7 +5,6 @@ import application.bookstore.models.Author;
 import application.bookstore.models.Role;
 import application.bookstore.ui.CreateButton;
 import application.bookstore.ui.DeleteButton;
-import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -15,25 +14,75 @@ import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 
 public class AuthorView extends View {
-    private final BorderPane borderPane = new BorderPane();
+    private final BorderPane mainPane = new BorderPane();
+
+    private final SearchView searchView = new SearchView("Search for an author");
+
     private final TableView<Author> tableView = new TableView<>();
+    private final TableColumn<Author, String> firstNameCol = new TableColumn<>("First name");
+    private final TableColumn<Author, String> lastNameCol = new TableColumn<>("Last name");
+
     private final HBox formPane = new HBox();
     private final TextField firstNameField = new TextField();
     private final TextField lastNameField = new TextField();
     private final Button saveBtn = new CreateButton();
     private final Button deleteBtn = new DeleteButton();
-    private final TableColumn<Author, String> firstNameCol = new TableColumn<>("First name");
-    private final TableColumn<Author, String> lastNameCol = new TableColumn<>("Last name");
-    private final Label resultLabel = new Label("");
-    private final SearchView searchView = new SearchView("Search for an author");
+
+    private final Label messageLabel = new Label("");
 
     public AuthorView() {
         setTableView();
         setForm();
         new AuthorController(this);
     }
+
+    @Override
+    public Parent getView() {
+        mainPane.setTop(searchView.getSearchPane());
+        mainPane.setCenter(tableView);
+        if ((super.getCurrentUser().getRole() == Role.ADMIN) || (super.getCurrentUser().getRole() == Role.MANAGER)) {
+            messageLabel.setTextAlignment(TextAlignment.CENTER);
+            VBox controls = new VBox();
+            controls.setAlignment(Pos.CENTER);
+            controls.setSpacing(5);
+            controls.getChildren().addAll(formPane, messageLabel);
+            mainPane.setBottom(controls);
+        }
+        return mainPane;
+    }
+
+    private void setForm() {
+        formPane.setPadding(new Insets(20));
+        formPane.setSpacing(20);
+        formPane.setAlignment(Pos.CENTER);
+        Label firstNameLabel = new Label("First name: ", firstNameField);
+        firstNameLabel.setContentDisplay(ContentDisplay.TOP);
+        Label lastNameLabel = new Label("Last name: ", lastNameField);
+        lastNameLabel.setContentDisplay(ContentDisplay.TOP);
+        formPane.getChildren().addAll(firstNameLabel, lastNameLabel, saveBtn, deleteBtn);
+    }
+
+    private void setTableView() {
+        tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        tableView.setEditable(false);
+        tableView.setItems(Author.getAuthors());
+
+        firstNameCol.setCellValueFactory(
+                new PropertyValueFactory<>("firstName")
+        );
+        firstNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
+
+        lastNameCol.setCellValueFactory(
+                new PropertyValueFactory<>("lastName")
+        );
+        lastNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
+
+        tableView.getColumns().addAll(firstNameCol, lastNameCol);
+    }
+
 
     public SearchView getSearchView() {
         return searchView;
@@ -51,8 +100,8 @@ public class AuthorView extends View {
         return deleteBtn;
     }
 
-    public Label getResultLabel() {
-        return resultLabel;
+    public Label getMessageLabel() {
+        return messageLabel;
     }
 
     public TableView<Author> getTableView() {
@@ -69,47 +118,5 @@ public class AuthorView extends View {
 
     public Button getSaveBtn() {
         return saveBtn;
-    }
-
-    @Override
-    public Parent getView() {
-        borderPane.setCenter(tableView);
-        if ((super.getCurrentUser().getRole() == Role.ADMIN) || (super.getCurrentUser().getRole() == Role.MANAGER)) {
-            VBox vBox = new VBox();
-            vBox.setAlignment(Pos.CENTER);
-            vBox.setSpacing(5);
-            vBox.getChildren().addAll(formPane, resultLabel);
-            borderPane.setBottom(vBox);
-        }
-        borderPane.setTop(searchView.getSearchPane());
-        return borderPane;
-    }
-
-    private void setForm() {
-        formPane.setPadding(new Insets(20));
-        formPane.setSpacing(20);
-        formPane.setAlignment(Pos.CENTER);
-        Label firstNameLabel = new Label("First name: ", firstNameField);
-        firstNameLabel.setContentDisplay(ContentDisplay.TOP);
-        Label lastNameLabel = new Label("Last name: ", lastNameField);
-        lastNameLabel.setContentDisplay(ContentDisplay.TOP);
-        formPane.getChildren().addAll(firstNameLabel, lastNameLabel, saveBtn, deleteBtn);
-    }
-
-    private void setTableView() {
-        // select multiple records in order to delete them
-        tableView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        tableView.setEditable(false);
-        tableView.setItems(FXCollections.observableArrayList(Author.getAuthors()));
-        firstNameCol.setCellValueFactory(
-                new PropertyValueFactory<>("firstName")
-        );
-        firstNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
-
-        lastNameCol.setCellValueFactory(
-                new PropertyValueFactory<>("lastName")
-        );
-        lastNameCol.setCellFactory(TextFieldTableCell.forTableColumn());
-        tableView.getColumns().addAll(firstNameCol, lastNameCol);
     }
 }

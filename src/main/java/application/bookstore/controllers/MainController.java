@@ -9,6 +9,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 
 public class MainController {
@@ -48,7 +49,6 @@ public class MainController {
 
     private void setKeyBinds() {
         mainView.getMenuItemNewOrder().setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
-        mainView.getMenuItemNewAdvancedOrder().setAccelerator(new KeyCodeCombination(KeyCode.M, KeyCombination.CONTROL_DOWN));
     }
 
     private void setListener() {
@@ -74,27 +74,19 @@ public class MainController {
             mainView.getTabPane().getSelectionModel().select(order);
         });
 
-        mainView.getMenuItemNewAdvancedOrder().setOnAction(e -> {
-            Tab order = new Tab("New Advanced Order");
-            OrderView o = new OrderView(mainView, mainStage, order, true);
-            order.setContent(o.getView());
-            mainView.getTabPane().getTabs().add(order);
-            mainView.getTabPane().getSelectionModel().select(order);
-            mainStage.sizeToScene();
-        });
     }
 
     private void setLogoutListener() {
         mainView.getMenuItemLogout().setOnAction(e -> {
             LoginView loginView = new LoginView();
             new LoginController(loginView, mainStage);
-            Scene scene = new Scene(loginView.getView(), LoginView.width, LoginView.height);
+            Scene scene = new Scene(loginView.getView(), MainView.width, MainView.height);
             mainStage.setScene(scene);
         });
         mainView.getLogoutButton().setOnMouseClicked(e -> {
             LoginView loginView = new LoginView();
             new LoginController(loginView, mainStage);
-            Scene scene = new Scene(loginView.getView(), LoginView.width, LoginView.height);
+            Scene scene = new Scene(loginView.getView(), MainView.width, MainView.height);
             mainStage.setScene(scene);
         });
     }

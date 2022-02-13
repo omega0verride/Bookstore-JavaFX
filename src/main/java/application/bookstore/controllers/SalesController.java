@@ -4,6 +4,7 @@ import application.bookstore.models.Order;
 import application.bookstore.ui.PrintWindow;
 import application.bookstore.views.SalesView;
 import javafx.collections.FXCollections;
+import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
@@ -22,8 +23,12 @@ public class SalesController {
     private void setPrintListener() {
         salesView.getPrintButton().setOnAction(e -> {
             Order o = salesView.getTableView().getSelectionModel().getSelectedItem();
-            new PrintWindow(mainStage, salesView, o);
-            o.print();
+            if (o==null){
+                Alert a = new Alert(Alert.AlertType.ERROR);
+                a.setContentText("Please choose 1 order.");
+                a.show();
+            }else
+                new PrintWindow(mainStage, salesView, o);
         });
     }
 

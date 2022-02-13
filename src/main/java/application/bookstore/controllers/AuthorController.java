@@ -2,101 +2,85 @@ package application.bookstore.controllers;
 
 import application.bookstore.models.Author;
 import application.bookstore.models.Role;
+import application.bookstore.ui.DeleteAuthorDialog;
 import application.bookstore.views.AuthorView;
 import javafx.collections.FXCollections;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class AuthorController {
-    private final AuthorView authorView;
+    private final AuthorView view;
 
-    public AuthorController(AuthorView authorView) {
-        this.authorView = authorView;
-        setSaveListener();
-        setDeleteListener();
-        Role currentRole = authorView.getCurrentUser().getRole();
-        if (currentRole == Role.MANAGER || currentRole == Role.ADMIN) {
-            setEditListener();
-            authorView.getTableView().setEditable(true);
-        }
+    public AuthorController(AuthorView view) {
+        this.view = view;
+        Role currentRole = view.getCurrentUser().getRole();
+
         setSearchListener();
-    }
 
-    private void setEditListener() {
-        authorView.getFirstNameCol().setOnEditCommit(e -> {
-            Author authorToEdit = e.getRowValue();
-            String oldVal = authorToEdit.getFirstName();
-            authorToEdit.setFirstName(e.getNewValue());
-            if (authorToEdit.isValid().matches("1")) {
-                authorToEdit.updateFile();
-            } else {
-                ControllerCommon.showErrorMessage(authorView.getResultLabel(), "Edit value invalid!\n" + authorToEdit.isValid());
-                authorToEdit.setFirstName(oldVal);
-                authorView.getTableView().getItems().set(authorView.getTableView().getItems().indexOf(authorToEdit), authorToEdit);
-            }
-        });
-
-        authorView.getLastNameCol().setOnEditCommit(e -> {
-            Author authorToEdit = e.getRowValue();
-            String oldVal = authorToEdit.getLastName();
-            authorToEdit.setLastName(e.getNewValue());
-            if (authorToEdit.isValid().matches("1")) {
-                authorToEdit.updateFile();
-            } else {
-                ControllerCommon.showErrorMessage(authorView.getResultLabel(), "Edit value invalid!\n" + authorToEdit.isValid());
-                authorToEdit.setLastName(oldVal);
-                authorView.getTableView().getItems().set(authorView.getTableView().getItems().indexOf(authorToEdit), authorToEdit);
-            }
-        });
+        if (currentRole == Role.MANAGER || currentRole == Role.ADMIN) {
+            setSaveListener();
+            setDeleteListener();
+            setEditListener();
+            view.getTableView().setEditable(true);
+        }
     }
 
     private void setSearchListener() {
-        authorView.getSearchView().getClearBtn().setOnAction(e -> {
-            authorView.getSearchView().getSearchField().setText("");
-            authorView.getTableView().setItems(FXCollections.observableArrayList(Author.getAuthors()));
+        view.getSearchView().getClearBtn().setOnAction(e -> {
+            view.getSearchView().getSearchField().setText("");
+            view.getTableView().setItems(FXCollections.observableArrayList(Author.getAuthors()));
         });
-        authorView.getSearchView().getSearchBtn().setOnAction(e -> {
-            String searchText = authorView.getSearchView().getSearchField().getText();
+        view.getSearchView().getSearchBtn().setOnAction(e -> {
+            String searchText = view.getSearchView().getSearchField().getText();
             ArrayList<Author> searchResults = Author.getSearchResults(searchText);
-            authorView.getTableView().setItems(FXCollections.observableArrayList(searchResults));
-        });
-    }
-
-    private void setDeleteListener() {
-        authorView.getDeleteBtn().setOnAction(e -> {
-            List<Author> itemsToDelete = List.copyOf(authorView.getTableView().getSelectionModel().getSelectedItems());
-            for (Author a : itemsToDelete) {
-                if (a.deleteFromFile()) {
-                    authorView.getTableView().getItems().remove(a);
-                    ControllerCommon.showSuccessMessage(authorView.getResultLabel(), "Author removed successfully");
-                } else {
-                    ControllerCommon.showErrorMessage(authorView.getResultLabel(), "Author deletion failed");
-                    break;
-                }
-            }
+            view.getTableView().setItems(FXCollections.observableArrayList(searchResults));
         });
     }
 
     private void setSaveListener() {
-        authorView.getSaveBtn().setOnAction(e -> {
-            String firstName = authorView.getFirstNameField().getText();
-            String lastName = authorView.getLastNameField().getText();
-            Author author = new Author(firstName, lastName);
-            if (!author.exists()) {
-                String saveResult = author.saveInFile();
-                if (saveResult.matches("1")) {
-                    authorView.getTableView().getItems().add(author);
-                    ControllerCommon.showSuccessMessage(authorView.getResultLabel(), "Author created successfully!");
-                    authorView.getFirstNameField().setText("");
-                    authorView.getLastNameField().setText("");
-                } else {
-                    ControllerCommon.showErrorMessage(authorView.getResultLabel(), "Author creation failed!\n" + saveResult);
-                }
-            } else {
-                ControllerCommon.showErrorMessage(authorView.getResultLabel(), "Author with this Full Name exists.");
-            }
+        view.getSaveBtn().setOnAction(e -> {
+            Author author = new Author(view.getFirstNameField().getText(), view.getLastNameField().getText());
+            String res = author.saveInFile();
+            if (res.matches("1")) {
+                    ControllerCommon.showSuccessMessage(view.getMessageLabel(), "Author created successfully!");
+                    view.getFirstNameField().setText("");
+                    view.getLastNameField().setText("");
+            } else
+                ControllerCommon.showErrorMessage(view.getMessageLabel(), "Author creation failed!\n" + res);
         });
     }
 
+    private void setDeleteListener() {
+        view.getDeleteBtn().setOnAction(e -> {
+            ButtonType answer = new ButtonType("Delete Books");
+            ButtonType somethingElse = new ButtonType("Delete Authors Only");
+            new DeleteAuthorDialog(view, answer, somethingElse);
+            // deletion is handled inside the dialog
+        });
+    }
+
+    private void setEditListener() {
+        view.getFirstNameCol().setOnEditCommit(e -> {
+            Author authorToEdit = e.getRowValue();
+            Author editedAuthor = new Author(e.getNewValue(), authorToEdit.getLastName());
+            String res = editedAuthor.updateInFile(authorToEdit);
+            if (res.matches("1"))
+                ControllerCommon.showSuccessMessage(view.getMessageLabel(), "Edit Successful!");
+            else
+                ControllerCommon.showErrorMessage(view.getMessageLabel(), "Edit value invalid!\n" + res);
+        });
+
+        view.getLastNameCol().setOnEditCommit(e -> {
+            Author authorToEdit = e.getRowValue();
+            Author editedAuthor = new Author(authorToEdit.getFirstName(), e.getNewValue());
+            String res = editedAuthor.updateInFile(authorToEdit);
+            if (res.matches("1"))
+                ControllerCommon.showSuccessMessage(view.getMessageLabel(), "Edit Successful!");
+            else
+                ControllerCommon.showErrorMessage(view.getMessageLabel(), "Edit value invalid!\n" + res);
+        });
+    }
 }
