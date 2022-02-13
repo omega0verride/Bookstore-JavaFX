@@ -1,12 +1,10 @@
 package application.bookstore.models;
 
-import application.bookstore.auxiliaries.FileHandler;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class User extends BaseModel<User>  implements Serializable{
     @Serial
