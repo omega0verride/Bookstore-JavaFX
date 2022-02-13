@@ -1,6 +1,6 @@
 # Bookstore-JavaFX
 
-On the last update changed all lists into ObservableList which made the software more responsive. Data and stats are updated imidiatelly on all tabs.
+On the last update I changed all lists into ObservableList which made the software more responsive. Data and stats are updated imidiatelly on all tabs.
 
 Made a lot of changes on the base models and generalized file handling using generics.
 
@@ -12,7 +12,7 @@ Fixed the search in the OrderView table so that it does not show books that are 
 
 Added custom error messages that describe the errors better. I.e "Edit value invalid! ISBN must contain exactlly 13 numbers."
 
-Added a ControllerCommon class that handles showing error messages, which now have a default timer of 5 seconds to dissapear.
+Added a ControllerCommon class that handles logging and showing error messages, which now have a default timer of 5 seconds to dissapear.
 
 Added a tablegenerator to show the books ordered as a table in the receipt. (This looks good in the console and txt file but when shown inside the dialog is a bit strange)
 
@@ -29,7 +29,7 @@ https://docs.oracle.com/javafx/2/charts/line-chart.htm
 Notes on the project
 
 
-The execution starts from Main where the logger is set up and the data is loaded from the files, then if this is the first time running uncomment createAdminAndData() to generate some sample data to work on.
+The execution starts from Main where the logger is set up and the data is loaded from the files, if this is the first time running uncomment createAdminAndData() to generate some sample data to work on.
 
 Each View extends from the View class which holds the logged in user.
 
@@ -51,7 +51,7 @@ These methods are not called directlly, each object has its own function to hand
 Book, Author, User, Order contain  each 1 static ObservableList which contains the data for all of them respectivelly. This list if firstlly loaded from the file. i.e to acces all books you can use Book.getBooks().
 
 The isValid() functions returns "1" if it is valid or a descriptive error message otherwise.
-
+    
 
 Orders are constructed using 2 classes: Order and BookOrder
 
@@ -60,5 +60,5 @@ A BookOrder is similiar to the Book class expect instead of stock it contains qu
 The BookOrder saves the book isbn, title, purchasedPrice, sellingPrice, author and the Book it derives from.
 The Book is only saved so that it is easier to reference the Book it depends on while processing the order. The value is decalred as transient to not save it in the file.
     
-   
+ 
 
