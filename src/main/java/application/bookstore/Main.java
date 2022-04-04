@@ -41,9 +41,9 @@ public class Main extends Application {
             new File(BaseModel.FOLDER_PATH).mkdirs();
             User u = new User("admin", "admin", Role.ADMIN);
             ControllerCommon.LOGGER.log(Level.INFO, u.saveInFile());
-            u = new User("manager", "manager", Role.ADMIN);
+            u = new User("manager", "manager", Role.MANAGER);
             ControllerCommon.LOGGER.log(Level.INFO, u.saveInFile());
-            u = new User("librarian", "librarian", Role.ADMIN);
+            u = new User("librarian", "librarian", Role.LIBRARIAN);
             ControllerCommon.LOGGER.log(Level.INFO, u.saveInFile());
             Author a = new Author("Albert", "Camus");
             a.saveInFile();
