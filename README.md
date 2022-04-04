@@ -61,4 +61,4 @@ The BookOrder saves the book isbn, title, purchasedPrice, sellingPrice, author a
 The Book is only saved so that it is easier to reference the Book it depends on while processing the order. The value is decalred as transient to not save it in the file.
     
  
-<img src="Screenshots/1.png" width=900>
+<img src="Screenshots/1.png" >
